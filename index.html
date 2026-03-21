@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>匿名化くん｜弁護士向けテキスト匿名化ツール</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Serif+JP:wght@600&display=swap');
+
+  :root {
+    /* ── 青緑カラーシステム ── */
+    --teal:        #0d5c63;   /* ヘッダー・メインカラー */
+    --teal-mid:    #0e7280;   /* ホバー */
+    --teal-light:  #e0f7f9;   /* 薄背景 */
+    --sky:         #0891b2;   /* アクションボタン */
+    --sky-hover:   #0670a0;
+    --sky-light:   #e0f2fe;
+    --emerald:     #059669;   /* 成功・チェック */
+    --emerald-bg:  #f0fdf4;
+    --emerald-bd:  #6ee7b7;
+
+    --bg:          #f2fafa;   /* 全体背景（ティール寄り白） */
+    --white:       #ffffff;
+    --border:      #cde8eb;
+    --border-dark: #9dcdd4;
+    --text:        #0f2e33;
+    --text-sub:    #2d6a72;
+    --text-muted:  #7aabb0;
+    --danger:      #dc2626;
+
+    --hl-bg:       #fffbe6;
+    --hl-text:     #92650a;
+    --hl-bd:       #f0cc6a;
+
+    --tab-active-bg: #ffffff;
+    --tab-inactive:  #d4f0f3;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    min-height: 100vh;
+  }
+
+  /* ══ ヘッダー ══ */
+  header {
+    background: var(--teal);
+    padding: 13px 28px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 2px 10px rgba(13,92,99,0.25);
+  }
+  .logo-mark {
+    width: 38px; height: 38px;
+    background: rgba(255,255,255,0.15);
+    border: 1.5px solid rgba(255,255,255,0.35);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Noto Serif JP', serif;
+    font-size: 17px; color: #fff; flex-shrink: 0;
+  }
+  .logo-text h1 {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 17px; color: #fff; letter-spacing: 0.05em;
+  }
+  .logo-text p { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 1px; }
+  .header-badge {
+    margin-left: auto;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 20px;
+    padding: 4px 13px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.8);
+  }
+
+  /* ══ 全体レイアウト ══ */
+  .layout {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    min-height: calc(100vh - 64px);
+  }
+
+  /* ══ サイドバー（タブ付き） ══ */
+  .sidebar {
+    background: var(--white);
+    border-right: 1.5px solid var(--border);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* タブ */
+  .tab-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-bottom: 2px solid var(--border);
+    background: var(--tab-inactive);
+  }
+  .tab-btn {
+    padding: 11px 10px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-sub);
+    background: var(--tab-inactive);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all .2s;
+    letter-spacing: 0.02em;
+  }
+  .tab-btn.active {
+    background: var(--white);
+    color: var(--teal);
+    font-weight: 700;
+    border-bottom: 2px solid var(--teal);
+    margin-bottom: -2px;
+  }
+  .tab-btn:not(.active):hover { background: #c4e8ec; }
+
+  /* タブコンテンツ */
+  .tab-content { display: none; flex: 1; overflow-y: auto; flex-direction: column; }
+  .tab-content.active { display: flex; }
+
+  /* ══ 使い方タブ ══ */
+  .howto-panel {
+    padding: 22px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .howto-purpose {
+    background: var(--teal-light);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .howto-purpose h3 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--teal);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .howto-purpose p {
+    font-size: 12px;
+    line-height: 1.8;
+    color: var(--text-sub);
+  }
+
+  .howto-section h4 {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--teal);
+    text-transform: uppercase;
+    border-left: 3px solid var(--sky);
+    padding-left: 8px;
+    margin-bottom: 12px;
+  }
+
+  .step-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .step-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .step-num {
+    width: 24px; height: 24px;
+    background: var(--sky);
+    color: white;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .step-body {}
+  .step-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+  .step-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  .tip-list {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+  .tip-item {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    font-size: 12px;
+    color: var(--text-sub);
+    line-height: 1.65;
+  }
+  .tip-icon { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+
+  .security-box {
+    background: var(--emerald-bg);
+    border: 1.5px solid var(--emerald-bd);
+    border-radius: 8px;
+    padding: 12px 14px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .security-box .icon { font-size: 18px; flex-shrink: 0; }
+  .security-box p {
+    font-size: 12px;
+    color: #065f46;
+    line-height: 1.7;
+  }
+  .security-box strong { font-weight: 700; }
+
+  /* ══ 設定タブ ══ */
+  .settings-panel {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    flex: 1;
+  }
+
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--teal);
+    text-transform: uppercase;
+    border-bottom: 2px solid var(--teal);
+    padding-bottom: 6px;
+    margin-bottom: 12px;
+  }
+
+  .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
+  .field label { font-size: 11px; font-weight: 500; color: var(--text-sub); }
+  .field input {
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    color: var(--text);
+    background: var(--white);
+    width: 100%;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .field input:focus {
+    outline: none;
+    border-color: var(--sky);
+    box-shadow: 0 0 0 3px rgba(8,145,178,0.12);
+  }
+  .field input::placeholder { color: var(--text-muted); }
+
+  .col-header { display: grid; grid-template-columns: 1fr 1fr 26px; gap: 5px; margin-bottom: 4px; }
+  .col-header span { font-size: 10px; color: var(--text-muted); font-weight: 500; }
+
+  .mapping-row { display: grid; grid-template-columns: 1fr 1fr 26px; gap: 5px; align-items: center; margin-bottom: 6px; }
+  .mapping-row input {
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    padding: 7px 8px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 12px;
+    color: var(--text);
+    background: #f8fdfd;
+    width: 100%;
+    transition: border-color .2s;
+  }
+  .mapping-row input:focus { outline: none; border-color: var(--sky); background: var(--white); }
+  .mapping-row input::placeholder { color: var(--text-muted); }
+
+  .del-btn {
+    background: none; border: 1.5px solid var(--border); border-radius: 5px;
+    color: var(--text-muted); cursor: pointer; font-size: 13px;
+    width: 26px; height: 26px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .15s;
+  }
+  .del-btn:hover { border-color: var(--danger); color: var(--danger); background: #fff5f5; }
+
+  .add-btn {
+    width: 100%; background: none;
+    border: 1.5px dashed var(--border-dark);
+    border-radius: 6px; padding: 7px;
+    font-family: 'Noto Sans JP', sans-serif; font-size: 12px;
+    color: var(--text-sub); cursor: pointer; transition: all .15s; margin-top: 2px;
+  }
+  .add-btn:hover { border-color: var(--sky); color: var(--sky); background: var(--sky-light); }
+
+  /* プリセット */
+  .preset-item {
+    display: flex; align-items: flex-start; gap: 9px;
+    padding: 8px 10px; border: 1.5px solid var(--border);
+    border-radius: 8px; cursor: pointer; margin-bottom: 5px;
+    transition: all .15s; user-select: none; background: #f8fdfd;
+  }
+  .preset-item:hover { border-color: var(--sky); background: var(--sky-light); }
+  .preset-item.active { border-color: var(--teal); background: var(--teal-light); }
+  .preset-check {
+    width: 17px; height: 17px; border: 2px solid var(--border-dark);
+    border-radius: 4px; flex-shrink: 0; margin-top: 1px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .15s; background: var(--white);
+  }
+  .preset-item.active .preset-check { background: var(--emerald); border-color: var(--emerald); }
+  .checkmark { display: none; color: white; font-size: 10px; font-weight: 700; }
+  .preset-item.active .checkmark { display: block; }
+  .preset-name { font-size: 12px; font-weight: 500; color: var(--text); }
+  .preset-sample { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+
+  /* 一括適用ボタン */
+  .default-btn {
+    width: 100%; background: var(--teal); color: white;
+    border: none; border-radius: 8px; padding: 10px 14px;
+    font-family: 'Noto Sans JP', sans-serif; font-weight: 500; font-size: 13px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    gap: 7px; transition: all .2s;
+  }
+  .default-btn:hover { background: var(--teal-mid); }
+
+  /* デモ・クリア（薄文字） */
+  .demo-clear-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 4px;
+  }
+  .ghost-btn {
+    flex: 1;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 7px 8px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 11px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all .15s;
+    text-align: center;
+  }
+  .ghost-btn:hover {
+    border-color: var(--border-dark);
+    color: var(--text-sub);
+    background: var(--teal-light);
+  }
+
+  /* ══ メインエリア ══ */
+  .main {
+    display: grid;
+    grid-template-rows: 1fr auto 1fr;
+    padding: 20px;
+    gap: 16px;
+    background: var(--bg);
+  }
+
+  .pane-card {
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(13,92,99,0.07);
+  }
+  .pane-header {
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    background: #f2fafa;
+  }
+  .pane-label { font-size: 12px; font-weight: 700; color: var(--text-sub); }
+  .char-count { font-size: 11px; color: var(--text-muted); }
+
+  textarea {
+    flex: 1; border: none; padding: 14px 16px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px; font-weight: 300; line-height: 1.85;
+    color: var(--text); resize: none; min-height: 160px;
+    background: var(--white);
+  }
+  textarea:focus { outline: none; }
+  textarea::placeholder { color: #b8d4d6; }
+
+  /* コントロールバー */
+  .control-bar { display: flex; align-items: center; gap: 10px; }
+
+  .anon-btn {
+    background: var(--sky);
+    color: white; border: none;
+    border-radius: 8px; padding: 11px 28px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight: 700; font-size: 14px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    transition: all .2s;
+    box-shadow: 0 2px 8px rgba(8,145,178,0.3);
+    letter-spacing: 0.02em;
+  }
+  .anon-btn:hover {
+    background: var(--sky-hover);
+    box-shadow: 0 4px 14px rgba(8,145,178,0.4);
+    transform: translateY(-1px);
+  }
+  .anon-btn:active { transform: translateY(0); }
+
+  .clear-main-btn {
+    background: var(--white); border: 1.5px solid var(--border);
+    border-radius: 8px; padding: 9px 16px;
+    font-family: 'Noto Sans JP', sans-serif; font-size: 13px;
+    color: var(--text-sub); cursor: pointer; transition: all .15s;
+  }
+  .clear-main-btn:hover { border-color: var(--border-dark); color: var(--text); }
+
+  .shortcut-hint { font-size: 11px; color: var(--text-muted); }
+
+  .stats-badge {
+    margin-left: auto;
+    background: var(--emerald-bg);
+    border: 1.5px solid var(--emerald-bd);
+    border-radius: 20px; padding: 5px 14px;
+    font-size: 12px; font-weight: 500; color: var(--emerald);
+    display: none;
+  }
+  .stats-badge.show { display: block; }
+
+  .output-body {
+    flex: 1; padding: 14px 16px;
+    font-size: 14px; font-weight: 300; line-height: 1.85;
+    color: var(--text); white-space: pre-wrap; word-break: break-all;
+    min-height: 160px; overflow-y: auto;
+  }
+  .output-placeholder { color: #b8d4d6; }
+  .anon-tag {
+    background: var(--hl-bg); color: var(--hl-text);
+    border: 1px solid var(--hl-bd);
+    border-radius: 4px; padding: 0 5px;
+    font-weight: 500; font-size: 13px;
+  }
+
+  .copy-btn {
+    background: var(--white); border: 1.5px solid var(--border);
+    border-radius: 6px; padding: 5px 14px;
+    font-family: 'Noto Sans JP', sans-serif; font-size: 12px; font-weight: 500;
+    color: var(--text-sub); cursor: pointer;
+    display: flex; align-items: center; gap: 6px; transition: all .15s;
+  }
+  .copy-btn:hover { border-color: var(--sky); color: var(--sky); }
+  .copy-btn.copied { border-color: var(--emerald); color: var(--emerald); background: var(--emerald-bg); }
+
+  /* トースト */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(16px);
+    background: var(--teal); color: white;
+    padding: 10px 22px; border-radius: 8px;
+    font-size: 13px; font-weight: 500;
+    opacity: 0; pointer-events: none; transition: all .3s; z-index: 999;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ── コピー確認バナー ── */
+  .copy-confirm {
+    position: fixed; top: 0; left: 0; right: 0;
+    background: var(--emerald);
+    color: white;
+    max-height: 0; overflow: hidden; padding: 0;
+    transition: max-height .35s ease, padding .35s ease;
+    z-index: 1000;
+    display: flex; align-items: center; justify-content: center;
+    gap: 10px; font-size: 14px; font-weight: 500;
+  }
+  .copy-confirm.show { max-height: 52px; padding: 14px 24px; }
+  .copy-confirm .confirm-close {
+    margin-left: 16px;
+    background: rgba(255,255,255,0.25); border: none; border-radius: 4px;
+    color: white; font-size: 12px; padding: 3px 10px;
+    cursor: pointer; transition: background .15s;
+  }
+  .copy-confirm .confirm-close:hover { background: rgba(255,255,255,0.4); }
+
+  /* ══ ドロップゾーン ══ */
+  .input-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    min-height: 160px;
+  }
+  .drop-zone {
+    position: absolute;
+    inset: 0;
+    border: 2.5px dashed var(--sky);
+    border-radius: 8px;
+    background: rgba(224,242,254,0.92);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    z-index: 10;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s;
+  }
+  .drop-zone.active { opacity: 1; pointer-events: all; }
+  .drop-zone .dz-icon { font-size: 36px; }
+  .drop-zone .dz-text { font-size: 15px; font-weight: 700; color: var(--sky); }
+  .drop-zone .dz-sub  { font-size: 12px; color: var(--text-muted); }
+
+  /* ファイル読み取りオーバーレイ */
+  .reading-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(242,250,250,0.93);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    z-index: 20;
+    border-radius: 8px;
+    display: none;
+  }
+  .reading-overlay.show { display: flex; }
+  .spinner {
+    width: 36px; height: 36px;
+    border: 3px solid var(--border);
+    border-top-color: var(--sky);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .reading-overlay p { font-size: 13px; color: var(--text-sub); font-weight: 500; }
+
+  /* ファイルボタン */
+  .file-pick-btn {
+    background: none;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 11px;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex; align-items: center; gap: 5px;
+    transition: all .15s;
+  }
+  .file-pick-btn:hover { border-color: var(--sky); color: var(--sky); background: var(--sky-light); }
+
+  /* APIキー入力 */
+  .apikey-section {
+    background: var(--teal-light);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+  .apikey-section .api-label {
+    font-size: 11px; font-weight: 700; color: var(--teal);
+    letter-spacing: 0.08em; margin-bottom: 6px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .apikey-section input {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    padding: 7px 10px;
+    font-family: monospace;
+    font-size: 12px;
+    color: var(--text);
+    background: var(--white);
+    transition: border-color .2s;
+  }
+  .apikey-section input:focus { outline: none; border-color: var(--sky); }
+  .apikey-section .api-note {
+    font-size: 10px; color: var(--text-muted); margin-top: 5px; line-height: 1.5;
+  }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark">匿</div>
+  <div class="logo-text">
+    <h1>匿名化くん</h1>
+    <p>弁護士・士業向けテキスト匿名化ツール</p>
+  </div>
+  <div class="header-badge">🔒 ローカル処理 / API不要</div>
+</header>
+
+<div class="layout">
+
+  <!-- ══ サイドバー（タブ） ══ -->
+  <aside class="sidebar">
+
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('howto', this)">
+        📖 使い方
+      </button>
+      <button class="tab-btn" onclick="switchTab('settings', this)">
+        ⚙️ 設定
+      </button>
+    </div>
+
+    <!-- ── 使い方タブ ── -->
+    <div class="tab-content active" id="tab-howto">
+      <div class="howto-panel">
+
+        <!-- 目的 -->
+        <div class="howto-purpose">
+          <h3>🎯 このツールの目的</h3>
+          <p>
+            相談メモや書類に含まれる<strong>個人名・住所・電話番号などの個人情報をワンクリックで匿名化</strong>し、そのまま安全にAIへ貼り付けられる状態にします。<br><br>
+            弁護士会の推奨に従い、AIへの入力前に個人情報を除去するための補助ツールです。
+          </p>
+        </div>
+
+        <!-- 使い方ステップ -->
+        <div class="howto-section">
+          <h4>使い方の流れ</h4>
+          <div class="step-list">
+
+            <div class="step-item">
+              <div class="step-num">1</div>
+              <div class="step-body">
+                <div class="step-title">「設定」タブで案件情報を入力</div>
+                <div class="step-desc">依頼者名・相手方名を入力しておくと、自動で「依頼者A」「相手方B」に置き換えられます。</div>
+              </div>
+            </div>
+
+            <div class="step-item">
+              <div class="step-num">2</div>
+              <div class="step-body">
+                <div class="step-title">自動置換パターンを選ぶ</div>
+                <div class="step-desc">電話番号・メール・住所・日付・金額などを自動で【　】に変換します。不要なものはOFFにできます。</div>
+              </div>
+            </div>
+
+            <div class="step-item">
+              <div class="step-num">3</div>
+              <div class="step-body">
+                <div class="step-title">テキストを貼り付ける</div>
+                <div class="step-desc">右側の入力欄に、相談メモや書類のテキストをそのまま貼り付けてください。</div>
+              </div>
+            </div>
+
+            <div class="step-item">
+              <div class="step-num">4</div>
+              <div class="step-body">
+                <div class="step-title">「ワンボタン匿名化」をクリック</div>
+                <div class="step-desc">設定したルールにもとづいて自動で置換されます。黄色くハイライトされた部分が匿名化された箇所です。</div>
+              </div>
+            </div>
+
+            <div class="step-item">
+              <div class="step-num">5</div>
+              <div class="step-body">
+                <div class="step-title">「コピー」してAIに貼り付ける</div>
+                <div class="step-desc">出力テキストの「📋 コピー」ボタンを押して、ChatGPT・Claude・Gemini などに貼り付けてご利用ください。</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- 補足Tips -->
+        <div class="howto-section">
+          <h4>こんなときに便利</h4>
+          <div class="tip-list">
+            <div class="tip-item"><span class="tip-icon">⚖️</span><span>相談内容をAIで時系列に整理したいとき</span></div>
+            <div class="tip-item"><span class="tip-icon">📄</span><span>準備書面・証拠説明書の下書きをAIに手伝わせるとき</span></div>
+            <div class="tip-item"><span class="tip-icon">🔍</span><span>判例調査の質問文を作るとき（個人情報なしで投げられる）</span></div>
+            <div class="tip-item"><span class="tip-icon">💬</span><span>複数の案件をNotebook LMなどで整理・分析するとき</span></div>
+            <div class="tip-item"><span class="tip-icon">📋</span><span>他のスタッフと事案概要を共有するとき</span></div>
+          </div>
+        </div>
+
+        <!-- セキュリティ説明 -->
+        <div class="security-box">
+          <span class="icon">🛡️</span>
+          <p>
+            <strong>テキスト処理はすべてブラウザ内で完結します。</strong><br>
+            📎 PDF・画像ファイルの読み取り時のみ、Anthropic APIを経由します（APIキー設定時）。<br>
+            🔒 APIキーはセッション中のみ保持され、サーバーには保存されません。
+          </p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── 設定タブ ── -->
+    <div class="tab-content" id="tab-settings">
+      <div class="settings-panel">
+
+        <!-- APIキー設定 -->
+        <div class="apikey-section">
+          <div class="api-label">🔑 Anthropic APIキー（ファイル読み取り用）</div>
+          <input type="password" id="apiKeyInput" placeholder="sk-ant-..." oninput="saveApiKey()">
+          <div class="api-note">
+            📎 PDF・画像ファイルの読み取りに使用します。<br>
+            🔒 このブラウザのセッション中のみ保持されます（閉じると消去）。
+          </div>
+        </div>
+
+        <div>
+          <div class="section-title">案件情報</div>
+          <div class="field">
+            <label>依頼者名（原告）</label>
+            <input type="text" id="clientName" placeholder="例：山田太郎">
+          </div>
+          <div class="field">
+            <label>相手方名（被告）</label>
+            <input type="text" id="opponentName" placeholder="例：佐藤次郎">
+          </div>
+          <div class="field">
+            <label>事件番号</label>
+            <input type="text" id="caseNo" placeholder="例：令和6年（ワ）第1234号">
+          </div>
+        </div>
+
+        <div>
+          <div class="section-title">名前・用語の置換</div>
+          <div class="col-header">
+            <span>元の名前・用語</span>
+            <span>置換後の表現</span>
+            <span></span>
+          </div>
+          <div id="mappingList"></div>
+          <button class="add-btn" onclick="addMapping()">＋ 置換ルールを追加</button>
+        </div>
+
+        <div>
+          <div class="section-title">自動置換パターン</div>
+          <div id="presetList"></div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:auto;">
+          <button class="default-btn" onclick="loadLawyerDefaults()">
+            ⚖️ 弁護士向け設定を一括適用
+          </button>
+          <!-- デモ・クリア（薄文字） -->
+          <div class="demo-clear-row">
+            <button class="ghost-btn" onclick="loadDemoData()">デモデータ</button>
+            <button class="ghost-btn" onclick="clearSettings()">設定をクリア</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ══ メインエリア ══ -->
+  <div class="main">
+
+    <div class="pane-card" id="mainInputCard">
+      <div class="pane-header">
+        <span class="pane-label">📝 入力テキスト / ファイルドロップ</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="char-count" id="inputCount">0 文字</span>
+          <button class="file-pick-btn" onclick="document.getElementById('fileInput').click()">
+            📎 ファイルを選択
+          </button>
+          <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp" style="display:none" onchange="handleFileSelect(this.files[0])">
+        </div>
+      </div>
+      <div class="input-wrapper"
+           ondragover="handleDragOver(event)"
+           ondragleave="handleDragLeave(event)"
+           ondrop="handleDrop(event)">
+        <!-- ドロップゾーン -->
+        <div class="drop-zone" id="dropZone">
+          <div class="dz-icon">📂</div>
+          <div class="dz-text">ここにファイルをドロップ</div>
+          <div class="dz-sub">PDF / JPG / PNG / GIF / WEBP 対応</div>
+        </div>
+        <!-- 読み取り中オーバーレイ -->
+        <div class="reading-overlay" id="readingOverlay">
+          <div class="spinner"></div>
+          <p id="readingMsg">AIがファイルを読み取り中...</p>
+        </div>
+        <textarea id="inputText"
+          style="flex:1;min-height:150px;"
+          placeholder="ここにテキストを貼り付け、またはPDF・画像ファイルをドロップしてください。
+
+📎 対応ファイル：PDF / JPG / PNG / GIF / WEBP
+✏️ テキストをそのまま入力・貼り付けも可能です。
+
+例：
+依頼者の山田太郎（42歳）は令和5年3月15日に相手方の佐藤次郎から
+300万円の損害を受けたと主張しています。"
+          oninput="updateCount()"></textarea>
+      </div>
+    </div>
+
+    <div class="control-bar">
+      <button class="anon-btn" onclick="anonymize()">🔒 ワンボタン匿名化</button>
+      <button class="clear-main-btn" onclick="clearMain()">クリア</button>
+      <span class="shortcut-hint">Ctrl + Enter でも実行</span>
+      <div class="stats-badge" id="statsBadge">✓ <span id="statsNum">0</span> 件を置換しました</div>
+    </div>
+
+    <div class="pane-card">
+      <div class="pane-header">
+        <span class="pane-label">✅ 匿名化済みテキスト（AIにそのまま貼り付けOK）</span>
+        <button class="copy-btn" id="copyBtn" onclick="copyOutput()">📋 コピー</button>
+      </div>
+      <div id="output" class="output-body">
+        <span class="output-placeholder">匿名化後のテキストがここに表示されます。</span>
+      </div>
+      <div id="outputPlain" style="display:none;"></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="copy-confirm" id="copyConfirm">
+  <span>✅</span>
+  <span>匿名化済みテキストをクリップボードにコピーしました　AIにそのまま貼り付けできます</span>
+  <button class="confirm-close" onclick="closeCopyConfirm()">閉じる ×</button>
+</div>
+
+<script>
+
+/* ══ APIキー管理 ══ */
+function saveApiKey() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if (key) sessionStorage.setItem('anon_api_key', key);
+  else sessionStorage.removeItem('anon_api_key');
+}
+function getApiKey() {
+  return sessionStorage.getItem('anon_api_key') || '';
+}
+
+/* ══ ドラッグ&ドロップ ══ */
+function handleDragOver(e) {
+  e.preventDefault();
+  document.getElementById('dropZone').classList.add('active');
+}
+function handleDragLeave(e) {
+  // wrapperの外に出た時のみ消す
+  if (!e.currentTarget.contains(e.relatedTarget)) {
+    document.getElementById('dropZone').classList.remove('active');
+  }
+}
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('dropZone').classList.remove('active');
+  const file = e.dataTransfer.files[0];
+  if (file) handleFileSelect(file);
+}
+
+/* ══ ファイル読み取り ══ */
+async function handleFileSelect(file) {
+  if (!file) return;
+  const allowed = ['application/pdf','image/jpeg','image/jpg','image/png','image/gif','image/webp'];
+  const ext = file.name.split('.').pop().toLowerCase();
+  const allowedExt = ['pdf','jpg','jpeg','png','gif','webp'];
+  if (!allowedExt.includes(ext)) {
+    showToast('⚠️ PDF・JPG・PNG・GIF・WEBP のみ対応しています');
+    return;
+  }
+
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    showToast('⚠️ 設定タブでAPIキーを入力してください');
+    // 設定タブを開く
+    document.querySelectorAll('.tab-btn')[1].click();
+    return;
+  }
+
+  showReading('AIがファイルを読み取り中...');
+
+  try {
+    const base64 = await fileToBase64(file);
+    const mediaType = getMediaType(ext);
+    let messages;
+
+    if (ext === 'pdf') {
+      messages = [{
+        role: 'user',
+        content: [{
+          type: 'document',
+          source: { type: 'base64', media_type: 'application/pdf', data: base64 }
+        }, {
+          type: 'text',
+          text: 'このPDFに含まれるすべてのテキストを、レイアウトをできるだけ保ちながら正確に書き出してください。余計な説明は不要です。テキストのみ出力してください。'
+        }]
+      }];
+    } else {
+      messages = [{
+        role: 'user',
+        content: [{
+          type: 'image',
+          source: { type: 'base64', media_type: mediaType, data: base64 }
+        }, {
+          type: 'text',
+          text: 'この画像に含まれるすべてのテキストを正確に書き出してください。レイアウトをできるだけ保ち、余計な説明は不要です。テキストのみ出力してください。'
+        }]
+      }];
+    }
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-opus-4-5',
+        max_tokens: 4096,
+        messages
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error?.message || `APIエラー (${res.status})`);
+    }
+
+    const data = await res.json();
+    const extracted = data.content.filter(b => b.type === 'text').map(b => b.text).join('\n');
+
+    document.getElementById('inputText').value = extracted;
+    updateCount();
+    hideReading();
+    showToast(`✅ ${file.name} の読み取り完了（${extracted.length}文字）`);
+
+  } catch(e) {
+    hideReading();
+    showToast('⚠️ 読み取りエラー: ' + e.message);
+    console.error(e);
+  }
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function getMediaType(ext) {
+  const map = { pdf:'application/pdf', jpg:'image/jpeg', jpeg:'image/jpeg', png:'image/png', gif:'image/gif', webp:'image/webp' };
+  return map[ext] || 'image/jpeg';
+}
+
+function showReading(msg) {
+  const ol = document.getElementById('readingOverlay');
+  document.getElementById('readingMsg').textContent = msg;
+  ol.classList.add('show');
+}
+function hideReading() {
+  document.getElementById('readingOverlay').classList.remove('show');
+}
+
+/* ══ データ定義 ══ */
+const presets = [
+  { id:'phone',   label:'電話番号',           sample:'例：090-1234-5678',       pattern:/0\d{1,4}[-－]?\d{1,4}[-－]?\d{4}/g,                                  replace:'【電話番号】' },
+  { id:'email',   label:'メールアドレス',     sample:'例：user@example.com',    pattern:/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g,                  replace:'【メールアドレス】' },
+  { id:'address', label:'住所（都道府県〜）', sample:'例：東京都渋谷区〇〇1-2-3', pattern:/(北海道|[東西南北]?[都道府県][^\s、。\n「」（）()]{2,15})/g,            replace:'【住所】' },
+  { id:'date',    label:'具体的な日付',       sample:'例：令和5年3月15日',       pattern:/(令和|平成|昭和)\d{1,2}年\d{1,2}月\d{1,2}日/g,                        replace:'【日付】' },
+  { id:'amount',  label:'金額',               sample:'例：300万円 / 1,200,000円', pattern:/\d{1,3}(,\d{3})*万?円/g,                                            replace:'【金額】' },
+  { id:'mynum',   label:'マイナンバー（12桁）', sample:'例：1234-5678-9012',    pattern:/\d{4}[-－]?\d{4}[-－]?\d{4}/g,                                        replace:'【マイナンバー】' }
+];
+
+let activePresets = new Set(['phone','email']);
+let mappings = [{ from:'', to:'' }];
+
+/* ══ タブ切替 ══ */
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + id).classList.add('active');
+}
+
+/* ══ 描画 ══ */
+function init() {
+  renderPresets();
+  renderMappings();
+  // セッションからAPIキー復元
+  const saved = sessionStorage.getItem('anon_api_key');
+  if (saved) document.getElementById('apiKeyInput').value = saved;
+}
+
+function renderPresets() {
+  document.getElementById('presetList').innerHTML = presets.map(p => `
+    <div class="preset-item ${activePresets.has(p.id)?'active':''}" onclick="togglePreset('${p.id}')">
+      <div class="preset-check"><span class="checkmark">✓</span></div>
+      <div>
+        <div class="preset-name">${p.label}</div>
+        <div class="preset-sample">${p.sample}</div>
+      </div>
+    </div>`).join('');
+}
+
+function togglePreset(id) {
+  activePresets.has(id) ? activePresets.delete(id) : activePresets.add(id);
+  renderPresets();
+}
+
+function renderMappings() {
+  document.getElementById('mappingList').innerHTML = mappings.map((m,i) => `
+    <div class="mapping-row">
+      <input type="text" placeholder="元の名前・用語" value="${escH(m.from)}" oninput="mappings[${i}].from=this.value">
+      <input type="text" placeholder="例：Aさん" value="${escH(m.to)}" oninput="mappings[${i}].to=this.value">
+      <button class="del-btn" onclick="removeMapping(${i})">×</button>
+    </div>`).join('');
+}
+
+function addMapping() {
+  mappings.push({from:'',to:''});
+  renderMappings();
+  setTimeout(()=>{ const ins=document.querySelectorAll('.mapping-row input'); if(ins.length) ins[ins.length-2].focus(); },50);
+}
+
+function removeMapping(i) {
+  mappings.splice(i,1);
+  if(!mappings.length) mappings.push({from:'',to:''});
+  renderMappings();
+}
+
+/* ══ 弁護士デフォルト ══ */
+function loadLawyerDefaults() {
+  const c = document.getElementById('clientName').value.trim();
+  const o = document.getElementById('opponentName').value.trim();
+  mappings = [
+    {from: c||'依頼者名', to:'依頼者A'},
+    {from: o||'相手方名', to:'相手方B'},
+    {from:'', to:''}
+  ];
+  renderMappings();
+  activePresets = new Set(['phone','email','address','date','amount']);
+  renderPresets();
+  showToast('弁護士向けデフォルトを一括適用しました ✓');
+}
+
+/* ══ デモデータ読み込み ══ */
+function loadDemoData() {
+  document.getElementById('clientName').value = '山田太郎';
+  document.getElementById('opponentName').value = '佐藤次郎';
+  document.getElementById('caseNo').value = '令和6年（ワ）第1234号';
+  mappings = [
+    {from:'山田太郎', to:'依頼者A'},
+    {from:'佐藤次郎', to:'相手方B'},
+    {from:'株式会社サンプル', to:'相手方会社'},
+    {from:'', to:''}
+  ];
+  renderMappings();
+  activePresets = new Set(['phone','email','address','date','amount']);
+  renderPresets();
+  document.getElementById('inputText').value =
+`相談記録　令和6年4月1日
+
+依頼者の山田太郎（42歳）は、令和5年3月15日に相手方の佐藤次郎（株式会社サンプル代表）から300万円の損害を受けたと主張しています。
+
+【連絡先】
+電話：090-1234-5678
+メール：yamada@example.com
+住所：東京都渋谷区〇〇1-2-3
+
+【経緯】
+令和5年1月10日に契約締結。
+令和5年3月15日に相手方より一方的に契約を破棄され、損害が発生。
+現在、弁護士費用として着手金50万円を請求済み。`;
+  updateCount();
+  switchTab('howto', document.querySelectorAll('.tab-btn')[0]);
+  showToast('デモデータを読み込みました。「設定」タブで確認できます ✓');
+}
+
+/* ══ 設定クリア ══ */
+function clearSettings() {
+  document.getElementById('clientName').value = '';
+  document.getElementById('opponentName').value = '';
+  document.getElementById('caseNo').value = '';
+  mappings = [{from:'', to:''}];
+  renderMappings();
+  activePresets = new Set(['phone','email']);
+  renderPresets();
+  showToast('設定をクリアしました');
+}
+
+/* ══ 匿名化処理 ══ */
+function anonymize() {
+  let text = document.getElementById('inputText').value;
+  if (!text.trim()) { showToast('テキストを入力してください'); return; }
+  let count = 0;
+
+  const c = document.getElementById('clientName').value.trim();
+  const o = document.getElementById('opponentName').value.trim();
+  if (c) { const h=text.match(new RegExp(escR(c),'g')); if(h) count+=h.length; text=text.replace(new RegExp(escR(c),'g'),'依頼者A'); }
+  if (o) { const h=text.match(new RegExp(escR(o),'g')); if(h) count+=h.length; text=text.replace(new RegExp(escR(o),'g'),'相手方B'); }
+
+  const valid = mappings.filter(m=>m.from.trim()&&m.to.trim()).sort((a,b)=>b.from.length-a.from.length);
+  for (const m of valid) {
+    const re=new RegExp(escR(m.from),'g');
+    const h=text.match(re); if(h) count+=h.length;
+    text=text.replace(re, m.to);
+  }
+  for (const p of presets) {
+    if (!activePresets.has(p.id)) continue;
+    const re=new RegExp(p.pattern.source, p.pattern.flags);
+    const h=text.match(re); if(h) count+=h.length;
+    text=text.replace(re, p.replace);
+  }
+
+  document.getElementById('outputPlain').textContent = text;
+  const html = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/【[^】]+】|依頼者[A-Z]|相手方[A-Za-z]+/g, m=>`<span class="anon-tag">${m}</span>`);
+  document.getElementById('output').innerHTML = html;
+  document.getElementById('statsNum').textContent = count;
+  document.getElementById('statsBadge').classList.add('show');
+}
+
+/* ══ コピー ══ */
+function copyOutput() {
+  const plain = document.getElementById('outputPlain').textContent;
+  if (!plain) { showToast('⚠️ 先に匿名化を実行してください'); return; }
+
+  const onSuccess = () => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✓ コピー済み'; btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent='📋 コピー'; btn.classList.remove('copied'); }, 2500);
+    showCopyConfirm();
+  };
+
+  // Clipboard API（HTTPS・localhost）
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(plain).then(onSuccess).catch(()=> fallbackCopy(plain, onSuccess));
+  } else {
+    fallbackCopy(plain, onSuccess);
+  }
+}
+
+function fallbackCopy(text, callback) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  try {
+    document.execCommand('copy');
+    callback();
+  } catch(e) {
+    showToast('⚠️ コピーに失敗しました。手動で選択してください。');
+  }
+  document.body.removeChild(ta);
+}
+
+/* ══ クリア ══ */
+function clearMain() {
+  document.getElementById('inputText').value = '';
+  document.getElementById('output').innerHTML = '<span class="output-placeholder">匿名化後のテキストがここに表示されます。</span>';
+  document.getElementById('outputPlain').textContent = '';
+  document.getElementById('inputCount').textContent = '0 文字';
+  document.getElementById('statsBadge').classList.remove('show');
+}
+
+/* ══ ユーティリティ ══ */
+function updateCount() {
+  document.getElementById('inputCount').textContent =
+    document.getElementById('inputText').value.length.toLocaleString() + ' 文字';
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+function showCopyConfirm() {
+  const el = document.getElementById("copyConfirm");
+  el.classList.add("show");
+  setTimeout(()=>el.classList.remove("show"), 5000);
+}
+function closeCopyConfirm() {
+  document.getElementById("copyConfirm").classList.remove("show");
+}
+function escH(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function escR(s) { return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+
+document.addEventListener('keydown', e => { if (e.key==='Enter'&&(e.ctrlKey||e.metaKey)) anonymize(); });
+
+init();
+</script>
+</body>
+</html>
