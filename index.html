@@ -577,33 +577,7 @@
   }
   .file-pick-btn:hover { border-color: var(--sky); color: var(--sky); background: var(--sky-light); }
 
-  /* APIキー入力 */
-  .apikey-section {
-    background: var(--teal-light);
-    border: 1.5px solid var(--border);
-    border-radius: 8px;
-    padding: 12px 14px;
-  }
-  .apikey-section .api-label {
-    font-size: 11px; font-weight: 700; color: var(--teal);
-    letter-spacing: 0.08em; margin-bottom: 6px;
-    display: flex; align-items: center; gap: 6px;
-  }
-  .apikey-section input {
-    width: 100%;
-    border: 1.5px solid var(--border);
-    border-radius: 6px;
-    padding: 7px 10px;
-    font-family: monospace;
-    font-size: 12px;
-    color: var(--text);
-    background: var(--white);
-    transition: border-color .2s;
-  }
-  .apikey-section input:focus { outline: none; border-color: var(--sky); }
-  .apikey-section .api-note {
-    font-size: 10px; color: var(--text-muted); margin-top: 5px; line-height: 1.5;
-  }
+
 
 </style>
 </head>
@@ -653,40 +627,64 @@
             <div class="step-item">
               <div class="step-num">1</div>
               <div class="step-body">
-                <div class="step-title">「設定」タブで案件情報を入力</div>
-                <div class="step-desc">依頼者名・相手方名を入力しておくと、自動で「依頼者A」「相手方B」に置き換えられます。</div>
+                <div class="step-title">「設定」タブで案件情報を入力する</div>
+                <div class="step-desc">
+                  依頼者名・相手方名・事件番号を入力しておきます。<br>
+                  入力した名前は、匿名化の際に自動で「依頼者A」「相手方B」に置き換えられます。<br>
+                  ※ 「弁護士向け設定を一括適用」ボタンを使うと、よく使う設定をまとめてセットできます。
+                </div>
               </div>
             </div>
 
             <div class="step-item">
               <div class="step-num">2</div>
               <div class="step-body">
-                <div class="step-title">自動置換パターンを選ぶ</div>
-                <div class="step-desc">電話番号・メール・住所・日付・金額などを自動で【　】に変換します。不要なものはOFFにできます。</div>
+                <div class="step-title">自動置換パターンを確認・選択する</div>
+                <div class="step-desc">
+                  電話番号・メールアドレス・住所・日付・金額などを自動で【電話番号】【住所】などに変換します。<br>
+                  チェックを入れたものだけが置換対象になります。不要なパターンはOFFにしてご利用ください。
+                </div>
               </div>
             </div>
 
-            <div class="step-item">
-              <div class="step-num">3</div>
+            <div class="step-item" style="border:2px solid var(--sky);border-radius:10px;padding:10px 12px;background:var(--sky-light);">
+              <div class="step-num" style="background:var(--teal);">3</div>
               <div class="step-body">
-                <div class="step-title">テキストを貼り付ける</div>
-                <div class="step-desc">右側の入力欄に、相談メモや書類のテキストをそのまま貼り付けてください。</div>
+                <div class="step-title" style="color:var(--teal);font-size:14px;">テキスト入力 または ファイルをドロップする　★このツールの特徴</div>
+                <div class="step-desc" style="color:var(--text-sub);">
+                  右側の入力エリアには <strong>2つの方法</strong> でテキストを用意できます。<br><br>
+                  <span style="font-weight:700;color:var(--teal);">① テキストをそのまま貼り付ける</span><br>
+                  　相談メモや書類の文章をコピーして貼り付けるだけでOKです。<br><br>
+                  <span style="font-weight:700;color:var(--teal);">② PDF・画像ファイルをドロップする</span><br>
+                  　PDFや写真（JPG・PNG など）を入力欄にドラッグ&ドロップすると、<br>
+                  　AIが自動でテキストを読み取って入力欄に展開します。<br>
+                  　手書きメモの写真・スキャンした書類にも対応しています。<br>
+                  　「📎 ファイルを選択」ボタンからファイルを選ぶことも可能です。
+                </div>
               </div>
             </div>
 
             <div class="step-item">
               <div class="step-num">4</div>
               <div class="step-body">
-                <div class="step-title">「ワンボタン匿名化」をクリック</div>
-                <div class="step-desc">設定したルールにもとづいて自動で置換されます。黄色くハイライトされた部分が匿名化された箇所です。</div>
+                <div class="step-title">「🔒 ワンボタン匿名化」をクリックする</div>
+                <div class="step-desc">
+                  ステップ1〜2で設定したルールにもとづいて、自動で一括置換されます。<br>
+                  置換された箇所は<span style="background:#fff9e6;border:1px solid #f0cc6a;border-radius:3px;padding:0 4px;color:#92650a;font-weight:500;">黄色くハイライト</span>表示されるので、どこが匿名化されたか一目でわかります。<br>
+                  ※ キーボードショートカット「Ctrl + Enter」でも実行できます。
+                </div>
               </div>
             </div>
 
             <div class="step-item">
               <div class="step-num">5</div>
               <div class="step-body">
-                <div class="step-title">「コピー」してAIに貼り付ける</div>
-                <div class="step-desc">出力テキストの「📋 コピー」ボタンを押して、ChatGPT・Claude・Gemini などに貼り付けてご利用ください。</div>
+                <div class="step-title">「📋 コピー」してAIに貼り付ける</div>
+                <div class="step-desc">
+                  出力エリアの「📋 コピー」ボタンを押すと、匿名化済みテキストがクリップボードにコピーされます。<br>
+                  そのまま ChatGPT・Claude・Gemini・NotebookLM などに貼り付けてご利用ください。<br>
+                  ※ コピー完了後、画面上部に緑のバナーで確認メッセージが表示されます。
+                </div>
               </div>
             </div>
 
@@ -710,8 +708,8 @@
           <span class="icon">🛡️</span>
           <p>
             <strong>テキスト処理はすべてブラウザ内で完結します。</strong><br>
-            📎 PDF・画像ファイルの読み取り時のみ、Anthropic APIを経由します（APIキー設定時）。<br>
-            🔒 APIキーはセッション中のみ保持され、サーバーには保存されません。
+            📎 PDF・画像ファイルの読み取り時のみ、サーバー経由でAIを呼び出します。<br>
+            🔒 個人情報はサーバーに保存されません。
           </p>
         </div>
 
@@ -721,16 +719,6 @@
     <!-- ── 設定タブ ── -->
     <div class="tab-content" id="tab-settings">
       <div class="settings-panel">
-
-        <!-- APIキー設定 -->
-        <div class="apikey-section">
-          <div class="api-label">🔑 Anthropic APIキー（ファイル読み取り用）</div>
-          <input type="password" id="apiKeyInput" placeholder="sk-ant-..." oninput="saveApiKey()">
-          <div class="api-note">
-            📎 PDF・画像ファイルの読み取りに使用します。<br>
-            🔒 このブラウザのセッション中のみ保持されます（閉じると消去）。
-          </div>
-        </div>
 
         <div>
           <div class="section-title">案件情報</div>
@@ -854,16 +842,6 @@
 
 <script>
 
-/* ══ APIキー管理 ══ */
-function saveApiKey() {
-  const key = document.getElementById('apiKeyInput').value.trim();
-  if (key) sessionStorage.setItem('anon_api_key', key);
-  else sessionStorage.removeItem('anon_api_key');
-}
-function getApiKey() {
-  return sessionStorage.getItem('anon_api_key') || '';
-}
-
 /* ══ ドラッグ&ドロップ ══ */
 function handleDragOver(e) {
   e.preventDefault();
@@ -890,14 +868,6 @@ async function handleFileSelect(file) {
   const allowedExt = ['pdf','jpg','jpeg','png','gif','webp'];
   if (!allowedExt.includes(ext)) {
     showToast('⚠️ PDF・JPG・PNG・GIF・WEBP のみ対応しています');
-    return;
-  }
-
-  const apiKey = getApiKey();
-  if (!apiKey) {
-    showToast('⚠️ 設定タブでAPIキーを入力してください');
-    // 設定タブを開く
-    document.querySelectorAll('.tab-btn')[1].click();
     return;
   }
 
@@ -932,13 +902,10 @@ async function handleFileSelect(file) {
       }];
     }
 
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('https://tokumeikakun-api.yymmatsu.workers.dev', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
       },
       body: JSON.stringify({
         model: 'claude-opus-4-5',
@@ -1015,9 +982,6 @@ function switchTab(id, btn) {
 function init() {
   renderPresets();
   renderMappings();
-  // セッションからAPIキー復元
-  const saved = sessionStorage.getItem('anon_api_key');
-  if (saved) document.getElementById('apiKeyInput').value = saved;
 }
 
 function renderPresets() {
