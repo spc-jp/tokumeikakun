@@ -70,13 +70,13 @@
   }
   .logo-text p { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 1px; }
   .header-badge {
-    margin-left: auto;
-    background: rgba(255,255,255,0.12);
-    border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
     border-radius: 20px;
-    padding: 4px 13px;
+    padding: 5px 13px;
     font-size: 11px;
-    color: rgba(255,255,255,0.8);
+    color: rgba(255,255,255,0.75);
+    white-space: nowrap;
   }
 
   /* ══ 全体レイアウト ══ */
@@ -86,49 +86,94 @@
     min-height: calc(100vh - 64px);
   }
 
-  /* ══ サイドバー（タブ付き） ══ */
+  /* ══ ヘッダーナビ ══ */
+  .header-nav {
+    display: flex;
+    gap: 6px;
+    margin-left: auto;
+  }
+  .hnav-btn {
+    background: rgba(255,255,255,0.12);
+    border: 1.5px solid rgba(255,255,255,0.25);
+    border-radius: 8px;
+    padding: 7px 16px;
+    color: rgba(255,255,255,0.85);
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .2s;
+    white-space: nowrap;
+  }
+  .hnav-btn:hover {
+    background: rgba(255,255,255,0.22);
+    color: #fff;
+  }
+  .hnav-btn.active {
+    background: rgba(255,255,255,0.28);
+    border-color: rgba(255,255,255,0.6);
+    color: #fff;
+    font-weight: 700;
+  }
+
+  /* ══ 使い方オーバーレイパネル ══ */
+  .howto-overlay {
+    position: fixed;
+    top: 64px; left: 0; bottom: 0;
+    width: 380px;
+    background: var(--white);
+    border-right: 1.5px solid var(--border);
+    box-shadow: 4px 0 20px rgba(13,92,99,0.12);
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform .3s ease;
+    display: flex;
+    flex-direction: column;
+  }
+  .howto-overlay.open {
+    transform: translateX(0);
+  }
+  .overlay-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1.5px solid var(--border);
+    background: var(--teal-light);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--teal);
+    flex-shrink: 0;
+  }
+  .overlay-close {
+    background: none;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 12px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .overlay-close:hover { border-color: var(--teal); color: var(--teal); }
+  .howto-panel-body {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  /* ══ サイドバー（設定のみ） ══ */
   .sidebar {
     background: var(--white);
     border-right: 1.5px solid var(--border);
     display: flex;
     flex-direction: column;
+    transition: transform .3s ease;
   }
-
-  /* タブ */
-  .tab-bar {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    border-bottom: 2px solid var(--border);
-    background: var(--tab-inactive);
+  .sidebar.hidden {
+    transform: translateX(-100%);
+    position: absolute;
   }
-  .tab-btn {
-    padding: 11px 10px;
-    font-family: 'Noto Sans JP', sans-serif;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-sub);
-    background: var(--tab-inactive);
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    transition: all .2s;
-    letter-spacing: 0.02em;
-  }
-  .tab-btn.active {
-    background: var(--white);
-    color: var(--teal);
-    font-weight: 700;
-    border-bottom: 2px solid var(--teal);
-    margin-bottom: -2px;
-  }
-  .tab-btn:not(.active):hover { background: #c4e8ec; }
-
-  /* タブコンテンツ */
-  .tab-content { display: none; flex: 1; overflow-y: auto; flex-direction: column; }
-  .tab-content.active { display: flex; }
 
   /* ══ 使い方タブ ══ */
   .howto-panel {
@@ -589,25 +634,23 @@
     <h1>匿名化くん</h1>
     <p>弁護士・士業向けテキスト匿名化ツール</p>
   </div>
-  <div class="header-badge">🔒 ローカル処理 / API不要</div>
+  <nav class="header-nav">
+    <button class="hnav-btn active" onclick="switchPanel('howto', this)">📖 使い方</button>
+    <button class="hnav-btn" onclick="switchPanel('settings', this)">⚙️ 設定</button>
+  </nav>
+  <div class="header-badge">✅ テキスト処理はブラウザ完結　📎 ファイル読み取りはAI対応</div>
 </header>
 
 <div class="layout">
 
-  <!-- ══ サイドバー（タブ） ══ -->
-  <aside class="sidebar">
-
-    <div class="tab-bar">
-      <button class="tab-btn active" onclick="switchTab('howto', this)">
-        📖 使い方
-      </button>
-      <button class="tab-btn" onclick="switchTab('settings', this)">
-        ⚙️ 設定
-      </button>
-    </div>
-
-    <!-- ── 使い方タブ ── -->
-    <div class="tab-content active" id="tab-howto">
+  <!-- ══ 使い方パネル（オーバーレイ） ══ -->
+  <div class="howto-overlay" id="panel-howto">
+    <div class="howto-overlay-inner">
+      <div class="overlay-header">
+        <span>📖 使い方</span>
+        <button class="overlay-close" onclick="closePanel()">✕ 閉じる</button>
+      </div>
+      <div class="howto-panel-body">
       <div class="howto-panel">
 
         <!-- 目的 -->
@@ -714,11 +757,13 @@
         </div>
 
       </div>
-    </div>
+    </div><!-- /howto-panel-body -->
+  </div><!-- /howto-overlay-inner -->
+</div><!-- /howto-overlay -->
 
-    <!-- ── 設定タブ ── -->
-    <div class="tab-content" id="tab-settings">
-      <div class="settings-panel">
+  <!-- ══ サイドバー（設定のみ） ══ -->
+  <aside class="sidebar" id="panel-settings">
+    <div class="settings-panel">
 
         <div>
           <div class="section-title">案件情報</div>
@@ -765,7 +810,6 @@
 
       </div>
     </div>
-
   </aside>
 
   <!-- ══ メインエリア ══ -->
@@ -970,12 +1014,31 @@ const presets = [
 let activePresets = new Set(['phone','email']);
 let mappings = [{ from:'', to:'' }];
 
-/* ══ タブ切替 ══ */
-function switchTab(id, btn) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+/* ══ パネル切替 ══ */
+function switchPanel(id, btn) {
+  const howto = document.getElementById('panel-howto');
+  const isHowto = id === 'howto';
+
+  // 同じボタンを再押しで閉じる
+  if (btn.classList.contains('active')) {
+    btn.classList.remove('active');
+    howto.classList.remove('open');
+    return;
+  }
+
+  document.querySelectorAll('.hnav-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById('tab-' + id).classList.add('active');
+
+  if (isHowto) {
+    howto.classList.add('open');
+  } else {
+    howto.classList.remove('open');
+  }
+}
+
+function closePanel() {
+  document.getElementById('panel-howto').classList.remove('open');
+  document.querySelectorAll('.hnav-btn').forEach(b => b.classList.remove('active'));
 }
 
 /* ══ 描画 ══ */
