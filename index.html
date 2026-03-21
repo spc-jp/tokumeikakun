@@ -81,9 +81,10 @@
 
   /* ══ 全体レイアウト ══ */
   .layout {
-    display: grid;
-    grid-template-columns: 340px 1fr;
+    display: flex;
     min-height: calc(100vh - 64px);
+    position: relative;
+    overflow: hidden;
   }
 
   /* ══ ヘッダーナビ ══ */
@@ -116,24 +117,41 @@
     font-weight: 700;
   }
 
-  /* ══ 使い方オーバーレイパネル ══ */
-  .howto-overlay {
+  /* 使い方・設定は .sidebar で統合管理 */
+
+  /* ══ サイドバー（設定・使い方 共通オーバーレイ） ══ */
+  .sidebar {
     position: fixed;
     top: 64px; left: 0; bottom: 0;
-    width: 380px;
+    width: 360px;
     background: var(--white);
     border-right: 1.5px solid var(--border);
-    box-shadow: 4px 0 20px rgba(13,92,99,0.12);
-    z-index: 100;
+    box-shadow: 4px 0 24px rgba(13,92,99,0.13);
+    z-index: 200;
     transform: translateX(-100%);
-    transition: transform .3s ease;
+    transition: transform .3s cubic-bezier(.4,0,.2,1);
     display: flex;
     flex-direction: column;
   }
-  .howto-overlay.open {
+  .sidebar.open {
     transform: translateX(0);
   }
-  .overlay-header {
+  /* オーバーレイ背景 */
+  .panel-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(13,92,99,0.18);
+    z-index: 199;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .3s;
+  }
+  .panel-backdrop.show {
+    opacity: 1;
+    pointer-events: all;
+  }
+  /* パネル共通ヘッダー */
+  .panel-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -145,7 +163,7 @@
     color: var(--teal);
     flex-shrink: 0;
   }
-  .overlay-close {
+  .panel-close {
     background: none;
     border: 1.5px solid var(--border);
     border-radius: 6px;
@@ -156,28 +174,16 @@
     cursor: pointer;
     transition: all .15s;
   }
-  .overlay-close:hover { border-color: var(--teal); color: var(--teal); }
-  .howto-panel-body {
+  .panel-close:hover { border-color: var(--teal); color: var(--teal); }
+  /* パネル内スクロールエリア */
+  .panel-body {
     flex: 1;
     overflow-y: auto;
-  }
-
-  /* ══ サイドバー（設定のみ） ══ */
-  .sidebar {
-    background: var(--white);
-    border-right: 1.5px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    transition: transform .3s ease;
-  }
-  .sidebar.hidden {
-    transform: translateX(-100%);
-    position: absolute;
+    padding: 20px;
   }
 
   /* ══ 使い方タブ ══ */
   .howto-panel {
-    padding: 22px 20px;
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -283,11 +289,9 @@
 
   /* ══ 設定タブ ══ */
   .settings-panel {
-    padding: 20px;
     display: flex;
     flex-direction: column;
     gap: 18px;
-    flex: 1;
   }
 
   .section-title {
@@ -421,6 +425,8 @@
     padding: 20px;
     gap: 16px;
     background: var(--bg);
+    flex: 1;
+    min-width: 0;
   }
 
   .pane-card {
@@ -643,14 +649,13 @@
 
 <div class="layout">
 
-  <!-- ══ 使い方パネル（オーバーレイ） ══ -->
-  <div class="howto-overlay" id="panel-howto">
-    <div class="howto-overlay-inner">
-      <div class="overlay-header">
-        <span>📖 使い方</span>
-        <button class="overlay-close" onclick="closePanel()">✕ 閉じる</button>
-      </div>
-      <div class="howto-panel-body">
+  <!-- ══ 使い方パネル ══ -->
+  <div class="sidebar" id="panel-howto">
+    <div class="panel-header">
+      <span>📖 使い方</span>
+      <button class="panel-close" onclick="closePanel()">✕ 閉じる</button>
+    </div>
+    <div class="panel-body">
       <div class="howto-panel">
 
         <!-- 目的 -->
@@ -756,14 +761,16 @@
           </p>
         </div>
 
-      </div>
-    </div><!-- /howto-panel-body -->
-  </div><!-- /howto-overlay-inner -->
-</div><!-- /howto-overlay -->
+    </div><!-- /panel-body howto -->
+  </div><!-- /panel-howto -->
 
-  <!-- ══ サイドバー（設定のみ） ══ -->
-  <aside class="sidebar" id="panel-settings">
-    <div class="settings-panel">
+  <!-- ══ 設定パネル ══ -->
+  <div class="sidebar" id="panel-settings">
+    <div class="panel-header">
+      <span>⚙️ 設定</span>
+      <button class="panel-close" onclick="closePanel()">✕ 閉じる</button>
+    </div>
+    <div class="panel-body">
 
         <div>
           <div class="section-title">案件情報</div>
@@ -809,8 +816,11 @@
         </div>
 
       </div>
-    </div>
-  </aside>
+    </div><!-- /panel-body settings -->
+  </div><!-- /panel-settings -->
+
+  <!-- バックドロップ -->
+  <div class="panel-backdrop" id="panelBackdrop" onclick="closePanel()"></div>
 
   <!-- ══ メインエリア ══ -->
   <div class="main">
@@ -1016,28 +1026,30 @@ let mappings = [{ from:'', to:'' }];
 
 /* ══ パネル切替 ══ */
 function switchPanel(id, btn) {
-  const howto = document.getElementById('panel-howto');
-  const isHowto = id === 'howto';
+  const panelHowto    = document.getElementById('panel-howto');
+  const panelSettings = document.getElementById('panel-settings');
+  const backdrop      = document.getElementById('panelBackdrop');
+  const isActive      = btn.classList.contains('active');
 
-  // 同じボタンを再押しで閉じる
-  if (btn.classList.contains('active')) {
-    btn.classList.remove('active');
-    howto.classList.remove('open');
-    return;
-  }
-
+  // 全部閉じる
+  panelHowto.classList.remove('open');
+  panelSettings.classList.remove('open');
+  backdrop.classList.remove('show');
   document.querySelectorAll('.hnav-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
 
-  if (isHowto) {
-    howto.classList.add('open');
-  } else {
-    howto.classList.remove('open');
-  }
+  // 同じボタンを再押しなら閉じるだけ
+  if (isActive) return;
+
+  // 指定パネルを開く
+  document.getElementById('panel-' + id).classList.add('open');
+  backdrop.classList.add('show');
+  btn.classList.add('active');
 }
 
 function closePanel() {
   document.getElementById('panel-howto').classList.remove('open');
+  document.getElementById('panel-settings').classList.remove('open');
+  document.getElementById('panelBackdrop').classList.remove('show');
   document.querySelectorAll('.hnav-btn').forEach(b => b.classList.remove('active'));
 }
 
