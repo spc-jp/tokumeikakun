@@ -389,21 +389,102 @@
   }
   .copy-confirm .confirm-close:hover { background: rgba(255,255,255,0.4); }
 
-  .input-wrapper { flex: 1; display: flex; flex-direction: column; position: relative; min-height: 160px; }
-  .drop-zone {
-    position: absolute; inset: 0; border: 2.5px dashed var(--sky); border-radius: 8px;
-    background: rgba(224,242,254,0.92); display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 10px; z-index: 10; opacity: 0; pointer-events: none; transition: opacity .2s;
-  }
-  .drop-zone.active { opacity: 1; pointer-events: all; }
-  .drop-zone .dz-icon { font-size: 36px; }
-  .drop-zone .dz-text { font-size: 15px; font-weight: 700; color: var(--sky); }
-  .drop-zone .dz-sub  { font-size: 12px; color: var(--text-muted); }
+  /* ══ 入力エリア リデザイン ══ */
+  .input-wrapper { flex: 1; display: flex; flex-direction: column; position: relative; min-height: 0; }
 
+  /* モード切替タブ */
+  .input-mode-tabs {
+    display: flex;
+    border-bottom: 1.5px solid var(--border);
+    background: #f8fdfd;
+    flex-shrink: 0;
+  }
+  .imt-btn {
+    flex: 1; padding: 10px 8px;
+    background: none; border: none; border-bottom: 2.5px solid transparent;
+    font-family: 'Noto Sans JP', sans-serif; font-size: 12px; font-weight: 500;
+    color: var(--text-muted); cursor: pointer; transition: all .15s;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    margin-bottom: -1.5px;
+  }
+  .imt-btn:hover { color: var(--sky); background: var(--sky-light); }
+  .imt-btn.active { color: var(--teal); border-bottom-color: var(--teal); background: var(--white); font-weight: 700; }
+
+  /* ファイルパネル */
+  .file-panel {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 20px 24px; gap: 18px;
+  }
+  .file-panel.hidden { display: none; }
+
+  .drop-area {
+    width: 100%; border: 2px dashed var(--border-dark); border-radius: 12px;
+    background: #f8fdfd; padding: 28px 20px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 10px; cursor: pointer; transition: all .2s;
+  }
+  .drop-area:hover, .drop-area.drag-over {
+    border-color: var(--sky); background: var(--sky-light);
+  }
+  .drop-area.drag-over { border-style: solid; box-shadow: 0 0 0 4px rgba(8,145,178,0.1); }
+  .drop-icon { font-size: 32px; line-height: 1; }
+  .drop-main-text { font-size: 14px; font-weight: 700; color: var(--teal); }
+  .drop-sub-text { font-size: 11px; color: var(--text-muted); }
+
+  .format-badges { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: 2px; }
+  .fmt-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; border: 1.5px solid;
+  }
+  .fmt-badge.word { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
+  .fmt-badge.pdf  { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
+  .fmt-badge.img  { background: #f0fdf4; color: #15803d; border-color: #86efac; }
+  .fmt-badge.word .badge-note { font-size: 9px; font-weight: 400; color: #3b82f6; }
+
+  .or-divider {
+    display: flex; align-items: center; gap: 10px; width: 100%; color: var(--text-muted); font-size: 11px;
+  }
+  .or-divider::before, .or-divider::after { content:''; flex:1; height:1px; background: var(--border); }
+
+  .file-action-row { display: flex; gap: 8px; width: 100%; }
+  .fa-btn {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px;
+    background: var(--white); border: 1.5px solid var(--border); border-radius: 8px;
+    padding: 10px 8px; font-family: 'Noto Sans JP', sans-serif; font-size: 12px; font-weight: 500;
+    color: var(--text-sub); cursor: pointer; transition: all .15s;
+  }
+  .fa-btn:hover { border-color: var(--sky); color: var(--sky); background: var(--sky-light); }
+  .fa-btn .fa-icon { font-size: 16px; }
+
+  /* テキストパネル */
+  .text-panel { flex: 1; display: flex; flex-direction: column; min-height: 0; position: relative; }
+  .text-panel.hidden { display: none; }
+
+  textarea {
+    flex: 1; border: none; padding: 14px 16px; font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px; font-weight: 300; line-height: 1.85; color: var(--text); resize: none; min-height: 160px;
+    background: var(--white);
+  }
+  textarea:focus { outline: none; }
+  textarea::placeholder { color: #b8d4d6; }
+
+  .text-panel-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 12px 8px; border-top: 1px solid var(--border); background: #f8fdfd;
+    flex-shrink: 0;
+  }
+  .tpf-hint { font-size: 10px; color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
+  .switch-to-file-btn {
+    background: none; border: 1.5px solid var(--border); border-radius: 6px; padding: 4px 10px;
+    font-family: 'Noto Sans JP', sans-serif; font-size: 11px; color: var(--text-muted); cursor: pointer; transition: all .15s;
+  }
+  .switch-to-file-btn:hover { border-color: var(--sky); color: var(--sky); }
+
+  /* 読み取りオーバーレイ */
   .reading-overlay {
-    position: absolute; inset: 0; background: rgba(242,250,250,0.93);
-    display: none; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
-    z-index: 20; border-radius: 8px;
+    position: absolute; inset: 0; background: rgba(242,250,250,0.95);
+    display: none; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+    z-index: 20; border-radius: 0 0 8px 8px;
   }
   .reading-overlay.show { display: flex; }
   .spinner {
@@ -412,14 +493,38 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
   .reading-overlay p { font-size: 13px; color: var(--text-sub); font-weight: 500; }
+  .reading-overlay .reading-sub { font-size: 11px; color: var(--text-muted); }
 
+  /* 旧来のクラス（互換） */
+  .drop-zone { display: none; }
   .file-pick-btn {
     background: none; border: 1.5px solid var(--border); border-radius: 6px; padding: 5px 12px;
     font-family: 'Noto Sans JP', sans-serif; font-size: 11px; color: var(--text-muted); cursor: pointer;
     display: flex; align-items: center; gap: 5px; transition: all .15s;
   }
   .file-pick-btn:hover { border-color: var(--sky); color: var(--sky); background: var(--sky-light); }
+
+  /* Word対応バッジ */
+  .word-badge {
+    display: inline-block;
+    background: #2b5eb9;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 4px;
+    padding: 1px 6px;
+    letter-spacing: 0.04em;
+    vertical-align: middle;
+    margin-right: 2px;
+  }
+  .docx-local-note {
+    font-size: 10px;
+    color: var(--emerald);
+    font-weight: 500;
+  }
 </style>
+<!-- mammoth.js: Wordファイル(.docx)をブラウザだけでテキスト変換 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 </head>
 <body>
 
@@ -452,6 +557,7 @@
           <div>
             <p>
               <strong>テキスト処理はすべてブラウザ内で完結します。</strong><br>
+              📄 <strong>Word(.docx)</strong>の読み取りもブラウザ内のみ。サーバー送信なし ✅<br>
               📎 PDF・画像ファイルの読み取り時のみ、サーバー経由でAIを呼び出します。<br>
               🔒 個人情報はサーバーに保存されません。
             </p>
@@ -500,7 +606,8 @@
                   右側の入力エリアには <strong>2つの方法</strong> でテキストを用意できます。<br><br>
                   <span style="font-weight:700;color:var(--teal);">① テキストをそのまま貼り付ける</span><br>
                   　相談メモや書類の文章をコピーして貼り付けるだけでOKです。<br><br>
-                  <span style="font-weight:700;color:var(--teal);">② PDF・画像ファイルをドロップする</span><br>
+                  <span style="font-weight:700;color:var(--teal);">② ファイルをドロップ・選択する</span><br>
+                  　<strong>Word(.docx)</strong> はブラウザ内のみで変換（サーバー送信なし ✅）<br>
                   　PDFや写真（JPG・PNG など）を入力欄にドラッグ&ドロップすると、<br>
                   　AIが自動でテキストを読み取って入力欄に展開します。<br>
                   　手書きメモの写真・スキャンした書類にも対応しています。<br>
@@ -628,38 +735,74 @@
 
     <div class="pane-card" id="mainInputCard">
       <div class="pane-header">
-        <span class="pane-label">📝 入力テキスト / ファイルドロップ</span>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span class="char-count" id="inputCount">0 文字</span>
-          <button class="file-pick-btn" onclick="document.getElementById('fileInput').click()">
-            📎 ファイルを選択
-          </button>
-          <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp" style="display:none" onchange="handleFileSelect(this.files[0])">
-        </div>
+        <span class="pane-label">📥 ステップ 3｜テキストまたはファイルを入力</span>
+        <span class="char-count" id="inputCount">0 文字</span>
       </div>
+
+      <!-- モード切替タブ -->
+      <div class="input-mode-tabs">
+        <button class="imt-btn" id="tabFile" onclick="switchInputMode('file')">
+          📂 ファイルを読み込む
+        </button>
+        <button class="imt-btn active" id="tabText" onclick="switchInputMode('text')">
+          ✏️ テキストを貼り付ける
+        </button>
+      </div>
+
       <div class="input-wrapper"
            ondragover="handleDragOver(event)"
            ondragleave="handleDragLeave(event)"
            ondrop="handleDrop(event)">
-        <div class="drop-zone" id="dropZone">
-          <div class="dz-icon">📂</div>
-          <div class="dz-text">ここにファイルをドロップ</div>
-          <div class="dz-sub">PDF / JPG / PNG / GIF / WEBP 対応</div>
-        </div>
-        <div class="reading-overlay" id="readingOverlay">
-          <div class="spinner"></div>
-          <p id="readingMsg">AIがファイルを読み取り中...</p>
-        </div>
-        <textarea id="inputText"
-          placeholder="ここにテキストを貼り付け、またはPDF・画像ファイルをドロップしてください。
 
-📎 対応ファイル：PDF / JPG / PNG / GIF / WEBP
-✏️ テキストをそのまま入力・貼り付けも可能です。
+        <!-- ファイルパネル -->
+        <div class="file-panel hidden" id="filePanel">
+          <div class="drop-area" id="dropArea" onclick="document.getElementById('fileInput').click()">
+            <div class="drop-icon">📂</div>
+            <div class="drop-main-text">ここにファイルをドロップ</div>
+            <div class="drop-sub-text">またはクリックしてファイルを選択</div>
+            <div class="format-badges">
+              <span class="fmt-badge word">📄 Word .docx <span class="badge-note">（ブラウザ内変換・外部送信なし）</span></span>
+              <span class="fmt-badge pdf">📕 PDF</span>
+              <span class="fmt-badge img">🖼️ JPG / PNG</span>
+            </div>
+          </div>
+          <div class="or-divider">またはボタンから選択</div>
+          <div class="file-action-row">
+            <button class="fa-btn" onclick="document.getElementById('fileInput').click()">
+              <span class="fa-icon">📎</span> ファイルを選択
+            </button>
+            <button class="fa-btn" onclick="switchInputMode('text')">
+              <span class="fa-icon">✏️</span> テキスト入力に切替
+            </button>
+          </div>
+        </div>
+
+        <!-- テキストパネル -->
+        <div class="text-panel" id="textPanel">
+          <textarea id="inputText"
+            placeholder="ここに相談メモ・書類のテキストを貼り付けてください。
+
+または左の「ファイルを読み込む」タブからWord / PDF / 画像も読み取れます。
+ファイルをここへドロップすることも可能です。
 
 例：
 依頼者の山田太郎（42歳）は令和5年3月15日に相手方の佐藤次郎から
 300万円の損害を受けたと主張しています。"
-          oninput="updateCount()"></textarea>
+            oninput="updateCount()"></textarea>
+          <div class="text-panel-footer">
+            <span class="tpf-hint">💡 ファイルをここへドロップしても読み取れます</span>
+            <button class="switch-to-file-btn" onclick="switchInputMode('file')">📂 ファイル入力に切替</button>
+          </div>
+        </div>
+
+        <!-- 読み取りオーバーレイ -->
+        <div class="reading-overlay" id="readingOverlay">
+          <div class="spinner"></div>
+          <p id="readingMsg">AIがファイルを読み取り中...</p>
+          <span class="reading-sub">しばらくお待ちください</span>
+        </div>
+
+        <input type="file" id="fileInput" accept=".pdf,.docx,.jpg,.jpeg,.png,.gif,.webp" style="display:none" onchange="handleFileSelect(this.files[0])">
       </div>
     </div>
 
@@ -694,17 +837,75 @@
 
 <script>
 /* ══ ドラッグ&ドロップ ══ */
-function handleDragOver(e) { e.preventDefault(); document.getElementById('dropZone').classList.add('active'); }
-function handleDragLeave(e) { if (!e.currentTarget.contains(e.relatedTarget)) document.getElementById('dropZone').classList.remove('active'); }
-function handleDrop(e) { e.preventDefault(); document.getElementById('dropZone').classList.remove('active'); const file = e.dataTransfer.files[0]; if (file) handleFileSelect(file); }
+function handleDragOver(e) {
+  e.preventDefault();
+  document.getElementById('dropArea')?.classList.add('drag-over');
+}
+function handleDragLeave(e) {
+  if (!e.currentTarget.contains(e.relatedTarget)) {
+    document.getElementById('dropArea')?.classList.remove('drag-over');
+  }
+}
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('dropArea')?.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) handleFileSelect(file);
+}
+
+/* ══ 入力モード切替 ══ */
+function switchInputMode(mode) {
+  const filePanel  = document.getElementById('filePanel');
+  const textPanel  = document.getElementById('textPanel');
+  const tabFile    = document.getElementById('tabFile');
+  const tabText    = document.getElementById('tabText');
+  if (mode === 'file') {
+    filePanel.classList.remove('hidden');
+    textPanel.classList.add('hidden');
+    tabFile.classList.add('active');
+    tabText.classList.remove('active');
+  } else {
+    filePanel.classList.add('hidden');
+    textPanel.classList.remove('hidden');
+    tabText.classList.add('active');
+    tabFile.classList.remove('active');
+    setTimeout(() => document.getElementById('inputText').focus(), 50);
+  }
+}
 
 /* ══ ファイル読み取り ══ */
 async function handleFileSelect(file) {
   if (!file) return;
   const ext = file.name.split('.').pop().toLowerCase();
-  const allowedExt = ['pdf','jpg','jpeg','png','gif','webp'];
-  if (!allowedExt.includes(ext)) { showToast('⚠️ PDF・JPG・PNG・GIF・WEBP のみ対応しています'); return; }
+  const allowedExt = ['pdf','docx','jpg','jpeg','png','gif','webp'];
+  if (!allowedExt.includes(ext)) {
+    if (ext === 'doc') {
+      showToast('⚠️ 旧式の .doc は非対応です。Word で「名前を付けて保存」→ .docx に変換してください');
+    } else {
+      showToast('⚠️ 対応ファイル：Word(.docx) / PDF / JPG / PNG / GIF / WEBP');
+    }
+    return;
+  }
 
+  /* ── Word(.docx): mammoth.js でブラウザ内変換（サーバー送信なし） ── */
+  if (ext === 'docx') {
+    showReading('Wordファイルを変換中...');
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const result = await mammoth.extractRawText({ arrayBuffer });
+      const text = result.value;
+      if (!text.trim()) { hideReading(); showToast('⚠️ テキストを抽出できませんでした（画像のみのファイルの可能性があります）'); return; }
+      document.getElementById('inputText').value = text;
+      updateCount(); hideReading();
+      switchInputMode('text');
+      showToast(`✅ ${file.name} の読み取り完了（${text.length}文字）　※サーバー送信なし`);
+    } catch(e) {
+      hideReading(); showToast('⚠️ Wordファイルの読み取りエラー: ' + e.message); console.error(e);
+    }
+    return;
+  }
+
+  /* ── PDF・画像: Claude API 経由で読み取り ── */
   showReading('AIがファイルを読み取り中...');
   try {
     const base64 = await fileToBase64(file);
@@ -728,7 +929,9 @@ async function handleFileSelect(file) {
     const data = await res.json();
     const extracted = data.content.filter(b => b.type === 'text').map(b => b.text).join('\n');
     document.getElementById('inputText').value = extracted;
-    updateCount(); hideReading(); showToast(`✅ ${file.name} の読み取り完了（${extracted.length}文字）`);
+    updateCount(); hideReading();
+    switchInputMode('text');
+    showToast(`✅ ${file.name} の読み取り完了（${extracted.length}文字）`);
   } catch(e) {
     hideReading(); showToast('⚠️ 読み取りエラー: ' + e.message); console.error(e);
   }
@@ -856,10 +1059,7 @@ Email：yamada.taro@example.com
 ２．未払い残業代 1,500,000円の支払い
 ３．上記に伴う遅延損害金の請求`;
   updateCount();
-  
-  // 以下の行を削除（使い方パネルを強制的に開く処理をやめる）
-  // const btnHowto = document.querySelector('.hnav-btn[onclick*="howto"]'); if(btnHowto) switchPanel('howto', btnHowto);
-  
+  switchInputMode('text');
   showToast('デモデータを読み込みました。「設定」タブで確認できます ✓');
 }
 
@@ -915,8 +1115,12 @@ function fallbackCopy(text, callback) {
 }
 
 function clearMain() {
-  document.getElementById('inputText').value = ''; document.getElementById('output').innerHTML = '<span class="output-placeholder">匿名化後のテキストがここに表示されます。</span>';
-  document.getElementById('outputPlain').textContent = ''; document.getElementById('inputCount').textContent = '0 文字'; document.getElementById('statsBadge').classList.remove('show');
+  document.getElementById('inputText').value = '';
+  document.getElementById('output').innerHTML = '<span class="output-placeholder">匿名化後のテキストがここに表示されます。</span>';
+  document.getElementById('outputPlain').textContent = '';
+  document.getElementById('inputCount').textContent = '0 文字';
+  document.getElementById('statsBadge').classList.remove('show');
+  switchInputMode('file');
 }
 
 function updateCount() { document.getElementById('inputCount').textContent = document.getElementById('inputText').value.length.toLocaleString() + ' 文字'; }
