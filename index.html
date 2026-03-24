@@ -522,6 +522,31 @@
     color: var(--emerald);
     font-weight: 500;
   }
+
+  /* ══ AI名前自動検出ボタン ══ */
+  .ai-detect-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #0d5c63 0%, #0891b2 100%);
+    border: none; border-radius: 10px; padding: 11px 14px;
+    font-family: 'Noto Sans JP', sans-serif; cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    transition: all .2s; box-shadow: 0 2px 8px rgba(8,145,178,0.25);
+    margin-bottom: 4px;
+  }
+  .ai-detect-btn:hover { box-shadow: 0 4px 14px rgba(8,145,178,0.4); transform: translateY(-1px); }
+  .ai-detect-btn:active { transform: translateY(0); }
+  .ai-detect-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+  .ai-detect-icon { font-size: 18px; flex-shrink: 0; }
+  .ai-detect-label { font-size: 13px; font-weight: 700; color: #fff; }
+  .ai-detect-sub { font-size: 10px; color: rgba(255,255,255,0.7); margin-left: auto; }
+
+  .ai-detect-status {
+    font-size: 11px; padding: 6px 10px; border-radius: 6px;
+    margin-bottom: 6px;
+  }
+  .ai-detect-status.loading { color: var(--sky); background: var(--sky-light); border: 1px solid #bae6fd; }
+  .ai-detect-status.success { color: #065f46; background: var(--emerald-bg); border: 1px solid var(--emerald-bd); }
+  .ai-detect-status.error   { color: #991b1b; background: #fff1f2; border: 1px solid #fecaca; }
 </style>
 <!-- mammoth.js: Wordファイル(.docx)をブラウザだけでテキスト変換 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
@@ -601,17 +626,20 @@
             <div class="step-item" style="border:2px solid var(--sky);border-radius:10px;padding:10px 12px;background:var(--sky-light);">
               <div class="step-num" style="background:var(--teal);">3</div>
               <div>
-                <div class="step-title" style="color:var(--teal);font-size:14px;">テキスト入力 または ファイルをドロップする　★このツールの特徴</div>
+                <div class="step-title" style="color:var(--teal);font-size:14px;">テキストまたはファイルを入力する　★このツールの特徴</div>
                 <div class="step-desc" style="color:var(--text-sub);">
-                  右側の入力エリアには <strong>2つの方法</strong> でテキストを用意できます。<br><br>
-                  <span style="font-weight:700;color:var(--teal);">① テキストをそのまま貼り付ける</span><br>
-                  　相談メモや書類の文章をコピーして貼り付けるだけでOKです。<br><br>
-                  <span style="font-weight:700;color:var(--teal);">② ファイルをドロップ・選択する</span><br>
-                  　<strong>Word(.docx)</strong> はブラウザ内のみで変換（サーバー送信なし ✅）<br>
-                  　PDFや写真（JPG・PNG など）を入力欄にドラッグ&ドロップすると、<br>
-                  　AIが自動でテキストを読み取って入力欄に展開します。<br>
-                  　手書きメモの写真・スキャンした書類にも対応しています。<br>
-                  　「📎 ファイルを選択」ボタンからファイルを選ぶことも可能です。
+                  右側の入力エリアに <strong>2つのタブ</strong> が表示されています。用途に合わせて切り替えてください。<br><br>
+
+                  <span style="font-weight:700;color:var(--teal);">📂 タブ①「ファイルを読み込む」（起動時のデフォルト）</span><br>
+                  　Word(.docx) / PDF / 画像（JPG・PNG）を読み取れます。<br>
+                  　ファイルを大きなエリアにドロップするか、「ファイルを選択」ボタンから選んでください。<br>
+                  　<strong>Word(.docx) はブラウザ内だけで変換。外部サーバーへの送信なし ✅</strong><br>
+                  　PDF・画像はAIが自動でテキストを読み取り、テキストタブに展開されます。<br><br>
+
+                  <span style="font-weight:700;color:var(--teal);">✏️ タブ②「テキストを貼り付ける」</span><br>
+                  　相談メモや書類の文章を直接コピー＆ペーストする場合はこちら。<br>
+                  　ファイル読み取り完了後も自動でこのタブに切り替わります。<br>
+                  　テキストエリアにファイルをドロップして読み取ることも可能です。
                 </div>
               </div>
             </div>
@@ -692,7 +720,14 @@
           <div class="settings-step-num green">2</div>
           <div style="flex:1; min-width:0;">
             <div class="settings-section-title title-green">名前・用語の置換</div>
-            <div class="col-header">
+            <!-- AI自動検出ボタン -->
+            <button class="ai-detect-btn" id="aiDetectBtn" onclick="detectNamesWithAI()">
+              <span class="ai-detect-icon">🤖</span>
+              <span class="ai-detect-label">AIで名前を自動検出</span>
+              <span class="ai-detect-sub">テキストから人名・組織名を抽出</span>
+            </button>
+            <div id="aiDetectStatus" class="ai-detect-status" style="display:none;"></div>
+            <div class="col-header" style="margin-top:10px;">
               <span>元の名前・用語</span>
               <span>置換後の表現</span>
               <span></span>
@@ -741,10 +776,10 @@
 
       <!-- モード切替タブ -->
       <div class="input-mode-tabs">
-        <button class="imt-btn" id="tabFile" onclick="switchInputMode('file')">
+        <button class="imt-btn active" id="tabFile" onclick="switchInputMode('file')">
           📂 ファイルを読み込む
         </button>
-        <button class="imt-btn active" id="tabText" onclick="switchInputMode('text')">
+        <button class="imt-btn" id="tabText" onclick="switchInputMode('text')">
           ✏️ テキストを貼り付ける
         </button>
       </div>
@@ -755,7 +790,7 @@
            ondrop="handleDrop(event)">
 
         <!-- ファイルパネル -->
-        <div class="file-panel hidden" id="filePanel">
+        <div class="file-panel" id="filePanel">
           <div class="drop-area" id="dropArea" onclick="document.getElementById('fileInput').click()">
             <div class="drop-icon">📂</div>
             <div class="drop-main-text">ここにファイルをドロップ</div>
@@ -778,7 +813,7 @@
         </div>
 
         <!-- テキストパネル -->
-        <div class="text-panel" id="textPanel">
+        <div class="text-panel hidden" id="textPanel">
           <textarea id="inputText"
             placeholder="ここに相談メモ・書類のテキストを貼り付けてください。
 
@@ -954,7 +989,7 @@ function hideReading() { document.getElementById('readingOverlay').classList.rem
 
 /* ══ データ定義 ══ */
 const presets = [
-  { id:'phone',   label:'電話番号',           sample:'例：090-1234-5678',       pattern:/0\d{1,4}[-－]?\d{1,4}[-－]?\d{4}/g,                                  replace:'【電話番号】' },
+  { id:'phone',   label:'電話番号',           sample:'例：090-1234-5678 / ０９０－１２３４－５６７８', pattern:/[0０][\d０-９]{1,4}[-－]?[\d０-９]{1,4}[-－]?[\d０-９]{3,4}/g, replace:'【電話番号】' },
   { id:'email',   label:'メールアドレス',     sample:'例：user@example.com',    pattern:/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g,                  replace:'【メールアドレス】' },
   { id:'address', label:'住所（都道府県〜）', sample:'例：東京都渋谷区〇〇1-2-3', pattern:/(北海道|[東西南北]?[都道府県][^\s、。\n「」（）()]{2,15})/g,            replace:'【住所】' },
   { id:'date',    label:'具体的な日付',       sample:'例：令和5年3月15日',       pattern:/(令和|平成|昭和)\d{1,2}年\d{1,2}月\d{1,2}日/g,                        replace:'【日付】' },
@@ -1129,6 +1164,90 @@ function showCopyConfirm() { const el = document.getElementById("copyConfirm"); 
 function closeCopyConfirm() { document.getElementById("copyConfirm").classList.remove("show"); }
 function escH(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function escR(s) { return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+
+/* ══ AI名前自動検出 ══ */
+async function detectNamesWithAI() {
+  const text = document.getElementById('inputText').value.trim();
+  if (!text) {
+    showToast('⚠️ まず入力エリアにテキストを入力してください');
+    return;
+  }
+  const btn = document.getElementById('aiDetectBtn');
+  const statusEl = document.getElementById('aiDetectStatus');
+
+  btn.disabled = true;
+  statusEl.style.display = 'block';
+  statusEl.className = 'ai-detect-status loading';
+  statusEl.textContent = '🤖 AIが人名・組織名を解析中...';
+
+  try {
+    const prompt = `以下のテキストに含まれる人名・組織名・会社名をすべて抽出してください。
+
+【抽出ルール】
+・個人名（フルネーム）、会社名、団体名、事務所名を対象にする
+・地名・役職名・一般名詞は含めない
+・重複は除く
+・必ずJSON配列のみ返す（説明文・前置き一切不要）
+
+【出力形式】
+["山田太郎","佐藤次郎","株式会社サンプル"]
+
+【テキスト】
+${text.slice(0, 3000)}`;
+
+    const res = await fetch('https://tokumeikakun-api.yymmatsu.workers.dev', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-opus-4-5',
+        max_tokens: 512,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    if (!res.ok) throw new Error(`APIエラー (${res.status})`);
+    const data = await res.json();
+    const raw = data.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+
+    // JSON配列を抽出
+    const match = raw.match(/\[[\s\S]*\]/);
+    if (!match) throw new Error('名前が見つかりませんでした');
+    const names = JSON.parse(match[0]);
+    if (!Array.isArray(names) || names.length === 0) throw new Error('人名・組織名が検出されませんでした');
+
+    // すでに設定済みの名前を除外して追加
+    const existing = mappings.map(m => m.from.trim()).filter(Boolean);
+    let addCount = 0;
+    // 最後の空行を除いてフィルタ
+    mappings = mappings.filter(m => m.from.trim() || m.to.trim());
+
+    names.forEach((name, i) => {
+      if (!name || existing.includes(name)) return;
+      const label = `【氏名${String.fromCharCode(65 + mappings.filter(m=>m.from).length)}】`;
+      mappings.push({ from: name, to: label });
+      addCount++;
+    });
+    mappings.push({ from: '', to: '' }); // 末尾に空行
+    renderMappings();
+
+    // 設定パネルを開く
+    const btnSettings = document.querySelector('.hnav-btn[onclick*="settings"]');
+    if (btnSettings && !document.getElementById('panel-settings').classList.contains('open')) {
+      switchPanel('settings', btnSettings);
+    }
+
+    statusEl.className = 'ai-detect-status success';
+    statusEl.textContent = `✅ ${addCount}件を自動検出しました。置換後の表現を確認・編集してください。`;
+    showToast(`✅ ${names.length}件の名前を検出 → 置換リストに追加しました`);
+
+  } catch(e) {
+    statusEl.className = 'ai-detect-status error';
+    statusEl.textContent = '⚠️ ' + e.message;
+    console.error(e);
+  } finally {
+    btn.disabled = false;
+  }
+}
 
 document.addEventListener('keydown', e => { if (e.key==='Enter'&&(e.ctrlKey||e.metaKey)) anonymize(); });
 
