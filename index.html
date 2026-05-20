@@ -3,411 +3,631 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>匿名化くん | 弁護士 思考コンパス Suite</title>
-
-<!-- Favicon -->
-<link rel="icon" href="https://spc-jp.github.io/tokumeikakun/favicon.png" type="image/png">
-
-<!-- Google Fonts: Suite統一 -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-
-<!-- Icons: Suite統一 (Phosphor Icons) -->
-<script src="https://unpkg.com/@phosphor-icons/web"></script>
-
+<title>匿名化くん｜弁護士向けテキスト匿名化ツール</title>
 <style>
-  /* ------------------------------------------------------------------
-     Theme Variables (思考コンパススイート共通)
-  ------------------------------------------------------------------ */
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Serif+JP:wght@600&display=swap');
+
   :root {
-    --primary-h: 215;
-    --primary-s: 40%;
-    --primary-l: 20%; 
-    
-    --primary-color: hsl(var(--primary-h), var(--primary-s), var(--primary-l));
-    --primary-light: hsl(var(--primary-h), var(--primary-s), 90%);
-    --primary-hover: hsl(var(--primary-h), var(--primary-s), 25%);
-    
-    --premium-gold: #c5a059; 
-    --premium-gold-light: #f0e6d2;
-    
-    --accent-color: #e74c3c; /* Error/Danger */
-    --warn-color: #f39c12;   /* Warning */
-    --success-color: #27ae60;/* OK/Emerald */
-    --success-bg: #eafaf1;
-    --success-bd: #a3e4d7;
-    
-    --bg-body: #f8f9fa;
-    --bg-surface: #ffffff;
-    --bg-surface-alt: #f4f6f8; 
-    --text-main: #2c3e50;
-    --text-sub: #34495e;
-    --text-muted: #7f8c8d;
-    --border-color: #dfe6e9;
-    --border-dark: #b2bec3;
+    /* ── 青緑カラーシステム ── */
+    --teal:        #0d5c63;   /* ヘッダー・メインカラー */
+    --teal-mid:    #0e7280;   /* ホバー */
+    --teal-light:  #e0f7f9;   /* 薄背景 */
+    --sky:         #0891b2;   /* アクションボタン */
+    --sky-hover:   #0670a0;
+    --sky-light:   #e0f2fe;
+    --emerald:     #059669;   /* 成功・チェック */
+    --emerald-bg:  #f0fdf4;
+    --emerald-bd:  #6ee7b7;
 
-    --hl-bg: #fffbe6;
-    --hl-text: #92650a;
-    --hl-bd: #f0cc6a;
+    --bg:          #f2fafa;   /* 全体背景（ティール寄り白） */
+    --white:       #ffffff;
+    --border:      #cde8eb;
+    --border-dark: #9dcdd4;
+    --text:        #0f2e33;
+    --text-sub:    #2d6a72;
+    --text-muted:  #7aabb0;
+    --danger:      #dc2626;
 
-    --shadow-float: 0 10px 20px -5px rgba(0, 0, 0, 0.08);
+    --hl-bg:       #fffbe6;
+    --hl-text:     #92650a;
+    --hl-bd:       #f0cc6a;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    background: var(--bg-body);
-    color: var(--text-main);
-    font-family: 'Roboto', 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif;
     font-size: 14px;
     min-height: 100vh;
-    -webkit-font-smoothing: antialiased;
   }
 
-  /* ══ ヘッダー（Suite共通スタイル） ══ */
+  /* ══ ヘッダー（固定） ══ */
   header {
     position: fixed;
     top: 0; left: 0; right: 0;
     z-index: 300;
-    background: var(--primary-color);
-    padding: 12px 24px;
+    background: var(--teal);
+    padding: 13px 28px;
     display: flex;
     align-items: center;
-    gap: 16px;
-    border-bottom: 3px solid var(--premium-gold);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    gap: 14px;
+    box-shadow: 0 2px 10px rgba(13,92,99,0.25);
   }
-  body { padding-top: 67px; } /* header height + border */
-
+  /* ヘッダー固定分の余白 */
+  body { padding-top: 64px; }
   .logo-mark {
-    width: 42px; height: 42px;
-    background: var(--premium-gold);
+    width: 38px; height: 38px;
+    background: rgba(255,255,255,0.15);
+    border: 1.5px solid rgba(255,255,255,0.35);
     border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 24px; color: #ffffff;
-    flex-shrink: 0;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    font-family: 'Noto Serif JP', serif;
+    font-size: 17px; color: #fff; flex-shrink: 0;
   }
   .logo-text h1 {
-    font-size: 18px; color: #ffffff; font-weight: 700; letter-spacing: 0.02em;
+    font-family: 'Noto Serif JP', serif;
+    font-size: 17px; color: #fff; letter-spacing: 0.05em;
   }
-  .logo-text p { font-size: 11px; color: rgba(255,255,255,0.7); margin-top: 2px; letter-spacing: 0.05em; }
+  .logo-text p { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 1px; }
+  .feature-badge {
+    display: inline-flex;
+    background: var(--white);
+    border: 1.5px solid var(--border-dark);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--teal);
+    margin-top: 12px;
+  }
 
   /* ══ 全体レイアウト ══ */
   .layout {
     display: flex;
-    min-height: calc(100vh - 67px);
+    min-height: calc(100vh - 64px);
     position: relative;
     overflow: hidden;
   }
 
   /* ══ ヘッダーナビ ══ */
-  .header-nav { display: flex; gap: 8px; margin-left: auto; align-items: center; }
-  .badge-proto {
-    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
-    color: #ffffff; font-size: 10px; padding: 4px 10px; border-radius: 20px;
-    letter-spacing: 0.1em; font-weight: 700; margin-right: 8px;
+  .header-nav {
+    display: flex;
+    gap: 6px;
+    margin-left: auto;
   }
   .hnav-btn {
-    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 6px; padding: 8px 16px; color: #ffffff;
-    font-family: inherit; font-size: 13px; font-weight: 500;
-    cursor: pointer; transition: all .2s; display: flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,0.12);
+    border: 1.5px solid rgba(255,255,255,0.25);
+    border-radius: 8px;
+    padding: 7px 16px;
+    color: rgba(255,255,255,0.85);
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .2s;
+    white-space: nowrap;
   }
-  .hnav-btn:hover { background: rgba(255,255,255,0.2); }
-  .hnav-btn.active { background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.5); font-weight: 700; }
+  .hnav-btn:hover {
+    background: rgba(255,255,255,0.22);
+    color: #fff;
+  }
+  .hnav-btn.active {
+    background: rgba(255,255,255,0.28);
+    border-color: rgba(255,255,255,0.6);
+    color: #fff;
+    font-weight: 700;
+  }
 
   /* ══ サイドバー（共通） ══ */
   .sidebar {
-    position: fixed; top: 67px; left: 0; bottom: 0; width: 380px;
-    background: var(--bg-surface); border-right: 1px solid var(--border-color);
-    box-shadow: 4px 0 24px rgba(0,0,0,0.05); z-index: 200;
-    transform: translateX(-100%); transition: transform .3s cubic-bezier(.4,0,.2,1);
-    display: flex; flex-direction: column;
+    position: fixed;
+    top: 64px; left: 0; bottom: 0;
+    width: 360px;
+    background: var(--white);
+    border-right: 1.5px solid var(--border);
+    box-shadow: 4px 0 24px rgba(13,92,99,0.13);
+    z-index: 200;
+    transform: translateX(-100%);
+    transition: transform .3s cubic-bezier(.4,0,.2,1);
+    display: flex;
+    flex-direction: column;
   }
-  .sidebar.open { transform: translateX(0); }
+  .sidebar.open {
+    transform: translateX(0);
+  }
   .panel-backdrop {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.45);
-    z-index: 199; opacity: 0; pointer-events: none; transition: opacity .3s; backdrop-filter: blur(2px);
+    position: fixed;
+    inset: 0;
+    background: rgba(13,92,99,0.18);
+    z-index: 199;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .3s;
   }
-  .panel-backdrop.show { opacity: 1; pointer-events: all; }
+  .panel-backdrop.show {
+    opacity: 1;
+    pointer-events: all;
+  }
   .panel-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 16px 20px; border-bottom: 1px solid var(--border-color); background: var(--bg-surface-alt);
-    font-size: 14px; font-weight: 700; color: var(--text-main); flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1.5px solid var(--border);
+    background: var(--teal-light);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--teal);
+    flex-shrink: 0;
   }
-  .panel-header span { display: flex; align-items: center; gap: 8px; }
-  .panel-header i { color: var(--primary-color); font-size: 18px; }
   .panel-close {
-    background: none; border: none; color: var(--text-muted); cursor: pointer;
-    font-size: 20px; transition: color .15s; display: flex; align-items: center; justify-content: center;
+    background: none;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 12px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all .15s;
   }
-  .panel-close:hover { color: var(--accent-color); }
-  .panel-body { flex: 1; overflow-y: auto; padding: 24px 20px; }
+  .panel-close:hover { border-color: var(--teal); color: var(--teal); }
+  .panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+  }
 
   /* ══ 使い方タブ ══ */
-  .howto-panel { display: flex; flex-direction: column; gap: 24px; }
-  .howto-purpose { background: var(--bg-surface-alt); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; }
-  .howto-purpose h3 { font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
-  .howto-purpose h3 i { color: var(--premium-gold); font-size: 18px; }
-  .howto-purpose p { font-size: 13px; line-height: 1.8; color: var(--text-main); }
-  
-  .howto-section h4 { font-size: 12px; font-weight: 700; color: var(--text-muted); border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 16px; }
-  .step-list { display: flex; flex-direction: column; gap: 16px; }
-  .step-item { display: flex; gap: 12px; align-items: flex-start; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; }
-  .step-item.highlight { border-color: var(--primary-color); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-  .step-num {
-    width: 24px; height: 24px; background: var(--primary-color); color: white;
-    border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    font-size: 12px; font-weight: 700; flex-shrink: 0; font-family: 'Roboto', sans-serif;
+  .howto-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
   }
-  .step-title { font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 6px; }
-  .step-item.highlight .step-title { color: var(--primary-color); }
-  .step-desc { font-size: 12px; color: var(--text-muted); line-height: 1.7; }
+  .howto-purpose {
+    background: var(--teal-light);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .howto-purpose h3 {
+    font-size: 13px; font-weight: 700; color: var(--teal); margin-bottom: 8px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .howto-purpose p { font-size: 12px; line-height: 1.8; color: var(--text-sub); }
+  .howto-section h4 {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.1em; color: var(--teal);
+    text-transform: uppercase; border-left: 3px solid var(--sky); padding-left: 8px; margin-bottom: 12px;
+  }
+  .step-list { display: flex; flex-direction: column; gap: 10px; }
+  .step-item { display: flex; gap: 12px; align-items: flex-start; }
+  .step-num {
+    width: 24px; height: 24px; background: var(--sky); color: white;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; flex-shrink: 0; margin-top: 1px;
+  }
+  .step-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+  .step-desc { font-size: 11px; color: var(--text-muted); line-height: 1.7; }
   
-  .tip-list { display: flex; flex-direction: column; gap: 8px; }
-  .tip-item { display: flex; gap: 10px; align-items: center; font-size: 13px; color: var(--text-main); background: var(--bg-surface-alt); padding: 10px 14px; border-radius: 6px; }
-  .tip-icon { font-size: 18px; color: var(--primary-color); }
+  .tip-list { display: flex; flex-direction: column; gap: 7px; }
+  .tip-item { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; color: var(--text-sub); line-height: 1.65; }
+  .tip-icon { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
   
-  .security-box { background: var(--success-bg); border: 1px solid var(--success-bd); border-radius: 8px; padding: 16px; display: flex; gap: 12px; align-items: flex-start; }
-  .security-box .icon { font-size: 20px; color: var(--success-color); }
-  .security-box p { font-size: 13px; color: var(--text-main); line-height: 1.7; }
+  .security-box {
+    background: var(--emerald-bg); border: 1.5px solid var(--emerald-bd);
+    border-radius: 8px; padding: 12px 14px; display: flex; gap: 10px; align-items: flex-start;
+  }
+  .security-box .icon { font-size: 18px; flex-shrink: 0; }
+  .security-box p { font-size: 12px; color: #065f46; line-height: 1.7; }
+  .security-box strong { font-weight: 700; }
 
   /* ══ 設定タブ ══ */
-  .settings-step-list { display: flex; flex-direction: column; gap: 28px; }
+  .settings-step-list { display: flex; flex-direction: column; gap: 24px; }
   .settings-step-item { display: flex; gap: 12px; align-items: flex-start; }
   .settings-step-num {
-    width: 24px; height: 24px; color: white; border-radius: 50%; background: var(--primary-color);
+    width: 24px; height: 24px; color: white; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    font-size: 12px; font-weight: 700; flex-shrink: 0; font-family: 'Roboto', sans-serif;
+    font-size: 12px; font-weight: 700; flex-shrink: 0; margin-top: 1px;
   }
+  .settings-step-num.blue { background: var(--sky); }
+  .settings-step-num.green { background: var(--emerald); }
+  .settings-step-num.teal { background: var(--teal); }
 
-  .settings-section-title { font-size: 14px; font-weight: 700; margin-bottom: 16px; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
+  .settings-section-title {
+    font-size: 13px; font-weight: 700; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .title-blue { color: var(--sky); }
+  .title-green { color: var(--emerald); }
+  .title-teal { color: var(--teal); }
 
-  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
-  .field label { font-size: 12px; font-weight: 700; color: var(--text-muted); }
+  .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
+  .field label { font-size: 11px; font-weight: 500; color: var(--text-sub); }
   .field input {
-    border: 1px solid var(--border-color); border-radius: 6px; padding: 10px 12px;
-    font-family: inherit; font-size: 13px; color: var(--text-main); background: var(--bg-surface-alt);
-    width: 100%; transition: border-color .2s; outline: none;
+    border: 1.5px solid var(--border); border-radius: 6px; padding: 8px 10px;
+    font-family: 'Noto Sans JP', sans-serif; font-size: 13px; color: var(--text);
+    background: var(--white); width: 100%; transition: border-color .2s, box-shadow .2s;
   }
-  .field input:focus { border-color: var(--primary-color); background: var(--bg-surface); }
+  .field input:focus { outline: none; border-color: var(--sky); box-shadow: 0 0 0 3px rgba(8,145,178,0.12); }
   
-  .col-header { display: grid; grid-template-columns: 1fr 1fr 28px; gap: 8px; margin-bottom: 8px; }
-  .col-header span { font-size: 11px; color: var(--text-muted); font-weight: 700; }
+  .col-header { display: grid; grid-template-columns: 1fr 1fr 26px; gap: 5px; margin-bottom: 4px; }
+  .col-header span { font-size: 10px; color: var(--text-muted); font-weight: 500; }
   
-  .mapping-row { display: grid; grid-template-columns: 1fr 1fr 28px; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .mapping-row { display: grid; grid-template-columns: 1fr 1fr 26px; gap: 5px; align-items: center; margin-bottom: 6px; }
   .mapping-row input {
-    border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 10px;
-    font-family: inherit; font-size: 13px; color: var(--text-main); background: var(--bg-surface-alt);
-    width: 100%; transition: border-color .2s; outline: none;
+    border: 1.5px solid var(--border); border-radius: 6px; padding: 7px 8px;
+    font-family: 'Noto Sans JP', sans-serif; font-size: 12px; color: var(--text);
+    background: #f8fdfd; width: 100%; transition: border-color .2s;
   }
-  .mapping-row input:focus { border-color: var(--primary-color); background: var(--bg-surface); }
+  .mapping-row input:focus { outline: none; border-color: var(--sky); background: var(--white); }
   
   .del-btn {
-    background: none; border: 1px solid var(--border-color); border-radius: 6px;
-    color: var(--text-muted); cursor: pointer; font-size: 16px;
-    width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+    background: none; border: 1.5px solid var(--border); border-radius: 5px;
+    color: var(--text-muted); cursor: pointer; font-size: 13px;
+    width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
     transition: all .15s; flex-shrink: 0;
   }
-  .del-btn:hover { border-color: var(--accent-color); color: var(--accent-color); background: var(--error-bg); }
+  .del-btn:hover { border-color: var(--danger); color: var(--danger); background: #fff5f5; }
   
   .add-btn {
-    width: 100%; background: none; border: 1px dashed var(--border-dark); border-radius: 6px; padding: 8px;
-    font-family: inherit; font-size: 13px; color: var(--text-muted); cursor: pointer; transition: all .15s; margin-top: 4px;
-    display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 500;
+    width: 100%; background: none; border: 1.5px dashed var(--border-dark);
+    border-radius: 6px; padding: 7px; font-family: 'Noto Sans JP', sans-serif; font-size: 12px;
+    color: var(--text-sub); cursor: pointer; transition: all .15s; margin-top: 2px;
   }
-  .add-btn:hover { border-color: var(--primary-color); color: var(--primary-color); background: rgba(52, 152, 219, 0.05); }
+  .add-btn:hover { border-color: var(--sky); color: var(--sky); background: var(--sky-light); }
 
   .preset-item {
-    display: flex; align-items: center; gap: 12px;
-    padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px;
-    cursor: pointer; margin-bottom: 8px; transition: all .15s; user-select: none; background: var(--bg-surface-alt);
+    display: flex; align-items: flex-start; gap: 9px;
+    padding: 8px 10px; border: 1.5px solid var(--border); border-radius: 8px;
+    cursor: pointer; margin-bottom: 5px; transition: all .15s; user-select: none; background: #f8fdfd;
   }
-  .preset-item:hover { border-color: var(--primary-color); }
-  .preset-item.active { border-color: var(--primary-color); background: var(--bg-surface); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+  .preset-item:hover { border-color: var(--sky); background: var(--sky-light); }
+  .preset-item.active { border-color: var(--teal); background: var(--teal-light); }
   .preset-check {
-    width: 18px; height: 18px; border: 2px solid var(--border-dark); border-radius: 4px;
-    flex-shrink: 0; display: flex; align-items: center; justify-content: center;
-    transition: all .15s; background: var(--bg-surface); color: white; font-size: 12px;
+    width: 17px; height: 17px; border: 2px solid var(--border-dark); border-radius: 4px;
+    flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center;
+    transition: all .15s; background: var(--white);
   }
-  .preset-item.active .preset-check { background: var(--primary-color); border-color: var(--primary-color); }
-  .checkmark { display: none; }
+  .preset-item.active .preset-check { background: var(--emerald); border-color: var(--emerald); }
+  .checkmark { display: none; color: white; font-size: 10px; font-weight: 700; }
   .preset-item.active .checkmark { display: block; }
-  .preset-name { font-size: 13px; font-weight: 700; color: var(--text-main); display: block; }
-  .preset-sample { font-size: 11px; color: var(--text-muted); display: block; margin-top: 2px;}
+  .preset-name { font-size: 12px; font-weight: 500; color: var(--text); }
+  .preset-sample { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
 
   .default-btn {
-    width: 100%; background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 6px; padding: 12px;
-    font-family: inherit; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all .2s;
+    width: 100%; background: var(--teal); color: white; border: none; border-radius: 8px; padding: 10px 14px;
+    font-family: 'Noto Sans JP', sans-serif; font-weight: 500; font-size: 13px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; transition: all .2s;
   }
-  .default-btn:hover { border-color: var(--primary-color); color: var(--primary-color); }
+  .default-btn:hover { background: var(--teal-mid); }
 
-  .text-link-btn { background: none; border: none; color: var(--text-muted); font-size: 12px; cursor: pointer; text-decoration: underline; transition: color .2s; }
-  .text-link-btn:hover { color: var(--primary-color); }
+  .text-link-btn {
+    background: none; border: none; color: var(--text-muted); font-size: 12px; cursor: pointer;
+    text-decoration: underline; transition: color .2s;
+  }
+  .text-link-btn:hover { color: var(--sky); }
 
   /* ══ メインエリア ══ */
-  .main { display: grid; grid-template-rows: 1fr auto 1fr; padding: 24px; gap: 20px; background: var(--bg-body); flex: 1; min-width: 0; }
+  .main {
+    display: grid; grid-template-rows: 1fr auto 1fr; padding: 20px; gap: 16px;
+    background: var(--bg); flex: 1; min-width: 0;
+  }
   .pane-card {
-    background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 12px;
-    display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--shadow-float);
+    background: var(--white); border: 1.5px solid var(--border); border-radius: 10px;
+    display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 1px 4px rgba(13,92,99,0.07);
   }
   .pane-header {
-    padding: 12px 20px; border-bottom: 1px solid var(--border-color); background: var(--bg-surface-alt);
-    display: flex; align-items: center; justify-content: space-between;
+    padding: 11px 16px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; background: #f2fafa;
   }
-  .pane-label { font-size: 13px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
-  .pane-label i { color: var(--primary-color); font-size: 16px; }
+  .pane-label { font-size: 12px; font-weight: 700; color: var(--text-sub); }
+  .char-count { font-size: 11px; color: var(--text-muted); }
 
-  /* 入力モードタブ */
-  .input-mode-tabs { display: flex; border-bottom: 1px solid var(--border-color); background: var(--bg-surface-alt); flex-shrink: 0; }
-  .imt-btn {
-    flex: 1; padding: 12px; background: none; border: none; border-bottom: 2px solid transparent;
-    font-family: inherit; font-size: 13px; font-weight: 700; color: var(--text-muted); cursor: pointer; transition: all .15s;
-    display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: -1px;
+  textarea {
+    flex: 1; border: none; padding: 14px 16px; font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px; font-weight: 300; line-height: 1.85; color: var(--text); resize: none; min-height: 160px;
+    background: var(--white);
   }
-  .imt-btn:hover { color: var(--primary-color); background: var(--bg-surface); }
-  .imt-btn.active { color: var(--primary-color); border-bottom-color: var(--primary-color); background: var(--bg-surface); }
-  .imt-btn i { font-size: 16px; }
+  textarea:focus { outline: none; }
+  textarea::placeholder { color: #b8d4d6; }
 
+  .control-bar { display: flex; align-items: center; gap: 10px; }
+  .anon-btn {
+    background: var(--sky); color: white; border: none; border-radius: 8px; padding: 11px 28px;
+    font-family: 'Noto Sans JP', sans-serif; font-weight: 700; font-size: 14px; cursor: pointer;
+    display: flex; align-items: center; gap: 8px; transition: all .2s; box-shadow: 0 2px 8px rgba(8,145,178,0.3);
+  }
+  .anon-btn:hover { background: var(--sky-hover); box-shadow: 0 4px 14px rgba(8,145,178,0.4); transform: translateY(-1px); }
+  .anon-btn:active { transform: translateY(0); }
+
+  .clear-main-btn {
+    background: var(--white); border: 1.5px solid var(--border); border-radius: 8px; padding: 9px 16px;
+    font-family: 'Noto Sans JP', sans-serif; font-size: 13px; color: var(--text-sub); cursor: pointer; transition: all .15s;
+  }
+  .clear-main-btn:hover { border-color: var(--border-dark); color: var(--text); }
+
+  .shortcut-hint { font-size: 11px; color: var(--text-muted); }
+
+  .stats-badge {
+    margin-left: auto; background: var(--emerald-bg); border: 1.5px solid var(--emerald-bd);
+    border-radius: 20px; padding: 5px 14px; font-size: 12px; font-weight: 500; color: var(--emerald); display: none;
+  }
+  .stats-badge.show { display: block; }
+
+  .output-body {
+    flex: 1; padding: 14px 16px; font-size: 14px; font-weight: 300; line-height: 1.85;
+    color: var(--text); white-space: pre-wrap; word-break: break-all; min-height: 160px; overflow-y: auto;
+  }
+  .output-placeholder { color: #b8d4d6; }
+  .anon-tag {
+    background: var(--hl-bg); color: var(--hl-text); border: 1px solid var(--hl-bd);
+    border-radius: 4px; padding: 0 5px; font-weight: 500; font-size: 13px;
+  }
+
+  .copy-btn {
+    background: var(--white); border: 1.5px solid var(--border); border-radius: 6px; padding: 5px 14px;
+    font-family: 'Noto Sans JP', sans-serif; font-size: 12px; font-weight: 500;
+    color: var(--text-sub); cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all .15s;
+  }
+  .copy-btn:hover { border-color: var(--sky); color: var(--sky); }
+  .copy-btn.copied { border-color: var(--emerald); color: var(--emerald); background: var(--emerald-bg); }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(16px);
+    background: var(--teal); color: white; padding: 10px 22px; border-radius: 8px; font-size: 13px; font-weight: 500;
+    opacity: 0; pointer-events: none; transition: all .3s; z-index: 999; box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .copy-confirm {
+    position: fixed; top: 0; left: 0; right: 0; background: var(--emerald); color: white;
+    max-height: 0; overflow: hidden; padding: 0; transition: max-height .35s ease, padding .35s ease;
+    z-index: 1000; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; font-weight: 500;
+  }
+  .copy-confirm.show { max-height: 52px; padding: 14px 24px; }
+  .copy-confirm .confirm-close {
+    margin-left: 16px; background: rgba(255,255,255,0.25); border: none; border-radius: 4px;
+    color: white; font-size: 12px; padding: 3px 10px; cursor: pointer; transition: background .15s;
+  }
+  .copy-confirm .confirm-close:hover { background: rgba(255,255,255,0.4); }
+
+  /* ══ 入力エリア リデザイン ══ */
   .input-wrapper { flex: 1; display: flex; flex-direction: column; position: relative; min-height: 0; }
 
+  /* モード切替タブ */
+  .input-mode-tabs {
+    display: flex;
+    border-bottom: 1.5px solid var(--border);
+    background: #f8fdfd;
+    flex-shrink: 0;
+  }
+  .imt-btn {
+    flex: 1; padding: 10px 8px;
+    background: none; border: none; border-bottom: 2.5px solid transparent;
+    font-family: 'Noto Sans JP', sans-serif; font-size: 12px; font-weight: 500;
+    color: var(--text-muted); cursor: pointer; transition: all .15s;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    margin-bottom: -1.5px;
+  }
+  .imt-btn:hover { color: var(--sky); background: var(--sky-light); }
+  .imt-btn.active { color: var(--teal); border-bottom-color: var(--teal); background: var(--white); font-weight: 700; }
+
   /* ファイルパネル */
-  .file-panel { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; gap: 20px; }
+  .file-panel {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 20px 24px; gap: 18px;
+  }
   .file-panel.hidden { display: none; }
+
   .drop-area {
-    width: 100%; max-width: 500px; border: 2px dashed var(--border-dark); border-radius: 12px; background: var(--bg-surface-alt); padding: 40px 20px;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; cursor: pointer; transition: all .2s;
+    width: 100%; border: 2px dashed var(--border-dark); border-radius: 12px;
+    background: #f8fdfd; padding: 28px 20px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 10px; cursor: pointer; transition: all .2s;
   }
-  .drop-area:hover, .drop-area.drag-over { border-color: var(--primary-color); background: rgba(52, 152, 219, 0.03); }
-  .drop-icon { font-size: 40px; color: var(--primary-color); }
-  .drop-main-text { font-size: 15px; font-weight: 700; color: var(--text-main); }
-  .drop-sub-text { font-size: 12px; color: var(--text-muted); }
+  .drop-area:hover, .drop-area.drag-over {
+    border-color: var(--sky); background: var(--sky-light);
+  }
+  .drop-area.drag-over { border-style: solid; box-shadow: 0 0 0 4px rgba(8,145,178,0.1); }
+  .drop-icon { font-size: 32px; line-height: 1; }
+  .drop-main-text { font-size: 14px; font-weight: 700; color: var(--teal); }
+  .drop-sub-text { font-size: 11px; color: var(--text-muted); }
 
-  .format-badges { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
-  .fmt-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; border: 1px solid var(--border-color); background: var(--bg-surface); color: var(--text-main); }
-  .fmt-badge i { font-size: 14px; }
-  .fmt-badge.word i { color: #2980b9; }
-  .fmt-badge.pdf i { color: #e74c3c; }
-  .fmt-badge.img i { color: #27ae60; }
-  .badge-note { font-weight: 400; color: var(--text-muted); font-size: 10px; margin-left: 2px;}
+  .format-badges { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: 2px; }
+  .fmt-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; border: 1.5px solid;
+  }
+  .fmt-badge.word { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
+  .fmt-badge.pdf  { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
+  .fmt-badge.img  { background: #f0fdf4; color: #15803d; border-color: #86efac; }
+  .fmt-badge.word .badge-note { font-size: 9px; font-weight: 400; color: #3b82f6; }
 
-  .or-divider { display: flex; align-items: center; gap: 12px; width: 100%; max-width: 500px; color: var(--text-muted); font-size: 12px; font-weight: 700; }
-  .or-divider::before, .or-divider::after { content:''; flex:1; height:1px; background: var(--border-color); }
+  .or-divider {
+    display: flex; align-items: center; gap: 10px; width: 100%; color: var(--text-muted); font-size: 11px;
+  }
+  .or-divider::before, .or-divider::after { content:''; flex:1; height:1px; background: var(--border); }
 
-  .file-action-row { display: flex; gap: 12px; width: 100%; max-width: 500px; }
+  .file-action-row { display: flex; gap: 8px; width: 100%; }
   .fa-btn {
-    flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
-    background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 8px;
-    padding: 12px; font-family: inherit; font-size: 13px; font-weight: 700; color: var(--text-main); cursor: pointer; transition: all .15s; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px;
+    background: var(--white); border: 1.5px solid var(--border); border-radius: 8px;
+    padding: 10px 8px; font-family: 'Noto Sans JP', sans-serif; font-size: 12px; font-weight: 500;
+    color: var(--text-sub); cursor: pointer; transition: all .15s;
   }
-  .fa-btn:hover { border-color: var(--primary-color); color: var(--primary-color); transform: translateY(-1px); }
-  .fa-btn i { font-size: 18px; }
+  .fa-btn:hover { border-color: var(--sky); color: var(--sky); background: var(--sky-light); }
+  .fa-btn .fa-icon { font-size: 16px; }
 
   /* テキストパネル */
   .text-panel { flex: 1; display: flex; flex-direction: column; min-height: 0; position: relative; }
   .text-panel.hidden { display: none; }
-  textarea { flex: 1; border: none; padding: 20px; font-family: inherit; font-size: 14px; line-height: 1.8; color: var(--text-main); resize: none; background: transparent; outline: none; }
-  textarea::placeholder { color: var(--border-dark); }
-  .text-panel-footer { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px; border-top: 1px solid var(--border-color); background: var(--bg-surface-alt); flex-shrink: 0; }
-  .tpf-hint { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
-  .switch-to-file-btn { background: none; border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 12px; font-family: inherit; font-size: 11px; font-weight: 700; color: var(--text-muted); cursor: pointer; transition: all .15s; display: flex; align-items: center; gap: 4px; }
-  .switch-to-file-btn:hover { border-color: var(--primary-color); color: var(--primary-color); }
+
+  textarea {
+    flex: 1; border: none; padding: 14px 16px; font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px; font-weight: 300; line-height: 1.85; color: var(--text); resize: none; min-height: 160px;
+    background: var(--white);
+  }
+  textarea:focus { outline: none; }
+  textarea::placeholder { color: #b8d4d6; }
+
+  .text-panel-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 12px 8px; border-top: 1px solid var(--border); background: #f8fdfd;
+    flex-shrink: 0;
+  }
+  .tpf-hint { font-size: 10px; color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
+  .switch-to-file-btn {
+    background: none; border: 1.5px solid var(--border); border-radius: 6px; padding: 4px 10px;
+    font-family: 'Noto Sans JP', sans-serif; font-size: 11px; color: var(--text-muted); cursor: pointer; transition: all .15s;
+  }
+  .switch-to-file-btn:hover { border-color: var(--sky); color: var(--sky); }
 
   /* 読み取りオーバーレイ */
-  .reading-overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.9); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 16px; z-index: 20; border-radius: 0 0 12px 12px; backdrop-filter: blur(2px); }
-  .reading-overlay.show { display: flex; }
-  .spinner { width: 40px; height: 40px; border: 3px solid var(--border-color); border-top-color: var(--primary-color); border-radius: 50%; animation: spin .8s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .reading-overlay p { font-size: 14px; font-weight: 700; color: var(--text-main); }
-  .reading-sub { font-size: 12px; color: var(--text-muted); }
-
-  /* コントロールバー */
-  .control-bar { display: flex; align-items: center; gap: 12px; }
-  .anon-btn {
-    background: var(--primary-color); color: white; border: none; border-radius: 8px; padding: 12px 32px;
-    font-family: inherit; font-weight: 700; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all .2s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  .reading-overlay {
+    position: absolute; inset: 0; background: rgba(242,250,250,0.95);
+    display: none; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+    z-index: 20; border-radius: 0 0 8px 8px;
   }
-  .anon-btn:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.15); }
-  .clear-main-btn { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 20px; font-family: inherit; font-size: 13px; font-weight: 700; color: var(--text-main); cursor: pointer; transition: all .15s; display: flex; align-items: center; gap: 6px; }
-  .clear-main-btn:hover { border-color: var(--primary-color); color: var(--primary-color); }
-  .shortcut-hint { font-size: 12px; color: var(--text-muted); font-family: 'Roboto', sans-serif; }
-  .stats-badge { margin-left: auto; background: var(--success-bg); border: 1px solid var(--success-bd); border-radius: 20px; padding: 6px 16px; font-size: 12px; font-weight: 700; color: var(--success-color); display: none; align-items: center; gap: 6px; }
-  .stats-badge.show { display: flex; }
+  .reading-overlay.show { display: flex; }
+  .spinner {
+    width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--sky);
+    border-radius: 50%; animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .reading-overlay p { font-size: 13px; color: var(--text-sub); font-weight: 500; }
+  .reading-overlay .reading-sub { font-size: 11px; color: var(--text-muted); }
 
-  /* 出力エリア */
-  .output-body { flex: 1; padding: 20px; font-size: 14px; line-height: 1.8; color: var(--text-main); white-space: pre-wrap; word-break: break-all; overflow-y: auto; background: transparent; }
-  .output-placeholder { color: var(--border-dark); }
-  .anon-tag { background: var(--hl-bg); color: var(--hl-text); border: 1px solid var(--hl-bd); border-radius: 4px; padding: 2px 6px; font-weight: 700; font-size: 12px; margin: 0 2px; }
-  .copy-btn { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 16px; font-family: inherit; font-size: 12px; font-weight: 700; color: var(--text-main); cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all .15s; }
-  .copy-btn:hover { border-color: var(--primary-color); color: var(--primary-color); }
-  .copy-btn.copied { border-color: var(--success-color); color: var(--success-color); background: var(--success-bg); }
+  /* 旧来のクラス（互換） */
+  .drop-zone { display: none; }
+  .file-pick-btn {
+    background: none; border: 1.5px solid var(--border); border-radius: 6px; padding: 5px 12px;
+    font-family: 'Noto Sans JP', sans-serif; font-size: 11px; color: var(--text-muted); cursor: pointer;
+    display: flex; align-items: center; gap: 5px; transition: all .15s;
+  }
+  .file-pick-btn:hover { border-color: var(--sky); color: var(--sky); background: var(--sky-light); }
+
+  /* Word対応バッジ */
+  .word-badge {
+    display: inline-block;
+    background: #2b5eb9;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 4px;
+    padding: 1px 6px;
+    letter-spacing: 0.04em;
+    vertical-align: middle;
+    margin-right: 2px;
+  }
+  .docx-local-note {
+    font-size: 10px;
+    color: var(--emerald);
+    font-weight: 500;
+  }
 
   /* ══ AI名前自動検出ボタン ══ */
   .ai-detect-btn {
-    width: 100%; background: var(--bg-surface); border: 1px solid var(--premium-gold); border-radius: 8px; padding: 12px 16px;
-    font-family: inherit; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all .2s; box-shadow: 0 2px 8px rgba(197,160,89,0.1); margin-bottom: 8px;
+    width: 100%;
+    background: linear-gradient(135deg, #0d5c63 0%, #0891b2 100%);
+    border: none; border-radius: 10px; padding: 11px 14px;
+    font-family: 'Noto Sans JP', sans-serif; cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    transition: all .2s; box-shadow: 0 2px 8px rgba(8,145,178,0.25);
+    margin-bottom: 4px;
   }
-  .ai-detect-btn:hover { background: var(--premium-gold-light); transform: translateY(-1px); }
-  .ai-detect-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-  .ai-detect-icon { font-size: 20px; color: var(--premium-gold); }
-  .ai-detect-label { font-size: 13px; font-weight: 700; color: var(--text-main); }
-  .ai-detect-sub { font-size: 11px; color: var(--text-muted); margin-left: auto; }
+  .ai-detect-btn:hover { box-shadow: 0 4px 14px rgba(8,145,178,0.4); transform: translateY(-1px); }
+  .ai-detect-btn:active { transform: translateY(0); }
+  .ai-detect-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+  .ai-detect-icon { font-size: 18px; flex-shrink: 0; }
+  .ai-detect-label { font-size: 13px; font-weight: 700; color: #fff; }
+  .ai-detect-sub { font-size: 10px; color: rgba(255,255,255,0.7); margin-left: auto; }
 
-  .ai-detect-status { font-size: 12px; font-weight: 700; padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-  .ai-detect-status.loading { color: var(--primary-color); background: var(--bg-surface-alt); border: 1px solid var(--border-color); }
-  .ai-detect-status.success { color: var(--success-color); background: var(--success-bg); border: 1px solid var(--success-bd); }
-  .ai-detect-status.error   { color: var(--accent-color); background: #fdf0ee; border: 1px solid #fadbd8; }
-
-  /* ══ トースト・通知 ══ */
-  .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--text-main); color: white; padding: 12px 24px; border-radius: 30px; font-size: 13px; font-weight: 700; opacity: 0; pointer-events: none; transition: all .3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 999; box-shadow: 0 10px 20px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 8px; }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-  .copy-confirm { position: fixed; top: 0; left: 0; right: 0; background: var(--success-color); color: white; max-height: 0; overflow: hidden; padding: 0; transition: max-height .3s, padding .3s; z-index: 1000; display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 14px; font-weight: 700; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-  .copy-confirm.show { max-height: 60px; padding: 16px 24px; }
-  .confirm-close { margin-left: 20px; background: rgba(0,0,0,0.2); border: none; border-radius: 4px; color: white; font-size: 12px; padding: 4px 12px; cursor: pointer; transition: background .2s; font-weight: 700; display: flex; align-items: center; gap: 4px; }
-  .confirm-close:hover { background: rgba(0,0,0,0.4); }
+  .ai-detect-status {
+    font-size: 11px; padding: 6px 10px; border-radius: 6px;
+    margin-bottom: 6px;
+  }
+  .ai-detect-status.loading { color: var(--sky); background: var(--sky-light); border: 1px solid #bae6fd; }
+  .ai-detect-status.success { color: #065f46; background: var(--emerald-bg); border: 1px solid var(--emerald-bd); }
+  .ai-detect-status.error   { color: #991b1b; background: #fff1f2; border: 1px solid #fecaca; }
 
   /* ══ パスワードゲート ══ */
-  .gate-overlay { position: fixed; inset: 0; z-index: 2000; background: rgba(44, 62, 80, 0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .gate-overlay {
+    position: fixed; inset: 0; z-index: 2000;
+    background: rgba(13,42,46,0.82);
+    backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }
   .gate-overlay.hidden { display: none; }
-  .gate-box { background: var(--bg-surface); border-radius: 16px; padding: 40px 32px; width: 100%; max-width: 440px; box-shadow: 0 24px 60px rgba(0,0,0,0.3); text-align: center; border: 1px solid var(--border-color); }
-  .gate-icon { font-size: 48px; color: var(--primary-color); margin-bottom: 16px; }
-  .gate-title { font-size: 20px; font-weight: 700; color: var(--text-main); margin-bottom: 8px; }
-  .gate-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.7; }
-  .gate-free-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--success-bg); border: 1px solid var(--success-bd); color: var(--success-color); font-size: 12px; font-weight: 700; border-radius: 20px; padding: 6px 16px; margin-bottom: 24px; }
-  .gate-count-bar { display: flex; justify-content: center; gap: 10px; margin-bottom: 24px; }
-  .gate-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--success-color); }
-  .gate-dot.used { background: var(--bg-surface-alt); border: 2px solid var(--border-color); }
-  .gate-input { width: 100%; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 16px; font-family: inherit; font-size: 15px; font-weight: 700; color: var(--text-main); text-align: center; letter-spacing: 0.1em; margin-bottom: 8px; transition: border-color .2s; outline: none; background: var(--bg-surface-alt); }
-  .gate-input:focus { border-color: var(--primary-color); background: var(--bg-surface); }
-  .gate-btn { width: 100%; background: var(--primary-color); color: white; border: none; border-radius: 8px; padding: 14px; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer; transition: all .2s; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; }
-  .gate-btn:hover { background: var(--primary-hover); }
-  .gate-err { font-size: 12px; font-weight: 700; color: var(--accent-color); margin-bottom: 12px; min-height: 18px; }
-  .gate-purchase-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--primary-color); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color .2s; }
-  .gate-purchase-link:hover { border-color: var(--primary-color); }
+  .gate-box {
+    background: var(--white); border-radius: 16px;
+    padding: 36px 32px; width: 100%; max-width: 420px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.3);
+    text-align: center;
+  }
+  .gate-icon { font-size: 44px; margin-bottom: 12px; }
+  .gate-title { font-family: 'Noto Serif JP', serif; font-size: 20px; font-weight: 600; color: var(--teal); margin-bottom: 6px; }
+  .gate-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 4px; line-height: 1.7; }
+  .gate-free-badge {
+    display: inline-block; background: var(--emerald-bg); border: 1.5px solid var(--emerald-bd);
+    color: var(--emerald); font-size: 12px; font-weight: 700; border-radius: 20px;
+    padding: 4px 14px; margin: 12px 0 20px;
+  }
+  .gate-count-bar {
+    display: flex; justify-content: center; gap: 8px; margin-bottom: 20px;
+  }
+  .gate-dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--emerald); border: 2px solid var(--emerald-bd);
+  }
+  .gate-dot.used { background: var(--border); border-color: var(--border-dark); }
+  .gate-input {
+    width: 100%; border: 1.5px solid var(--border); border-radius: 8px;
+    padding: 11px 14px; font-family: 'Noto Sans JP', sans-serif; font-size: 15px;
+    color: var(--text); text-align: center; letter-spacing: 0.1em; margin-bottom: 10px;
+    transition: border-color .2s;
+  }
+  .gate-input:focus { outline: none; border-color: var(--sky); box-shadow: 0 0 0 3px rgba(8,145,178,0.12); }
+  .gate-btn {
+    width: 100%; background: var(--teal); color: white; border: none; border-radius: 8px;
+    padding: 12px; font-family: 'Noto Sans JP', sans-serif; font-size: 14px; font-weight: 700;
+    cursor: pointer; transition: all .2s; margin-bottom: 14px;
+  }
+  .gate-btn:hover { background: var(--teal-mid); }
+  .gate-err { font-size: 12px; color: var(--danger); margin-bottom: 10px; min-height: 18px; }
+  .gate-purchase-link {
+    display: block; font-size: 12px; color: var(--sky); text-decoration: underline; cursor: pointer;
+  }
+  .gate-purchase-link:hover { color: var(--sky-hover); }
 
   /* 残回数バッジ */
-  .trial-badge { position: fixed; bottom: 30px; right: 30px; z-index: 500; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 30px; padding: 8px 20px; font-size: 13px; font-weight: 700; color: var(--text-main); box-shadow: var(--shadow-float); display: flex; align-items: center; gap: 8px; }
-  .trial-badge i { color: var(--success-color); font-size: 16px; }
-  .trial-badge.warning i { color: var(--warn-color); }
+  .trial-badge {
+    position: fixed; bottom: 24px; right: 20px; z-index: 500;
+    background: var(--white); border: 1.5px solid var(--border);
+    border-radius: 24px; padding: 7px 16px;
+    font-size: 12px; font-weight: 500; color: var(--text-sub);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .trial-badge.warning { border-color: #fbbf24; color: #92400e; background: #fffbeb; }
   .trial-badge.hidden { display: none; }
-  
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border-dark); border-radius: 4px; }
 </style>
+<!-- mammoth.js: Wordファイル(.docx)をブラウザだけでテキスト変換 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 </head>
 <body>
 
+
 <!-- ══ パスワードゲート ══ -->
 <div class="gate-overlay hidden" id="gateOverlay">
   <div class="gate-box">
-    <div class="gate-icon"><i class="ph-fill ph-lock-key"></i></div>
+    <div class="gate-icon">🔐</div>
     <div class="gate-title">匿名化くん</div>
     <div class="gate-sub">無料でお試しいただけるのは<strong>3回</strong>までです。<br>引き続きご利用には購入パスワードが必要です。</div>
-    <div class="gate-free-badge"><i class="ph-bold ph-check"></i> 無料トライアル 3回 終了</div>
+    <div class="gate-free-badge">✅ 無料トライアル 3回 終了</div>
     <div class="gate-count-bar">
       <div class="gate-dot used"></div>
       <div class="gate-dot used"></div>
@@ -415,26 +635,25 @@
     </div>
     <input type="password" class="gate-input" id="gateInput" placeholder="購入パスワードを入力">
     <div class="gate-err" id="gateErr"></div>
-    <button class="gate-btn" onclick="checkPassword()"><i class="ph-bold ph-lock-open"></i> 解除して続ける</button>
-    <a class="gate-purchase-link" href="STRIPE_PAYMENT_LINK_HERE" target="_blank"><i class="ph-bold ph-arrow-up-right"></i> 月額4,980円で購入する（Stripe）</a>
+    <button class="gate-btn" onclick="checkPassword()">🔓 解除して続ける</button>
+    <a class="gate-purchase-link" href="STRIPE_PAYMENT_LINK_HERE" target="_blank">▶ 月額4,980円で購入する（Stripe）</a>
   </div>
 </div>
 
 <!-- 残回数バッジ -->
-<div class="trial-badge hidden" id="trialBadge"><i class="ph-fill ph-info"></i> あと <span id="trialRemain">3</span> 回無料</div>
+<div class="trial-badge hidden" id="trialBadge">🆓 あと <span id="trialRemain">3</span> 回無料</div>
 
 <header>
   <a onclick="window.scrollTo({top:0,behavior:'smooth'})" style="display:flex;align-items:center;gap:14px;text-decoration:none;cursor:pointer;" title="先頭へ戻る">
-    <div class="logo-mark"><i class="ph-fill ph-eye-slash"></i></div>
+    <div class="logo-mark">匿</div>
     <div class="logo-text">
       <h1>匿名化くん</h1>
-      <p>弁護士 思考コンパス Suite</p>
+      <p>弁護士・士業向けテキスト匿名化ツール</p>
     </div>
   </a>
   <nav class="header-nav">
-    <div class="badge-proto">PROTOTYPE</div>
-    <button class="hnav-btn active" onclick="switchPanel('howto', this)"><i class="ph-bold ph-book-open"></i> 使い方</button>
-    <button class="hnav-btn" onclick="switchPanel('settings', this)"><i class="ph-bold ph-gear"></i> 設定</button>
+    <button class="hnav-btn active" onclick="switchPanel('howto', this)">📖 使い方</button>
+    <button class="hnav-btn" onclick="switchPanel('settings', this)">⚙️ 設定</button>
   </nav>
 </header>
 
@@ -443,29 +662,30 @@
   <!-- ══ 使い方パネル ══ -->
   <div class="sidebar" id="panel-howto">
     <div class="panel-header">
-      <span><i class="ph-fill ph-book-open"></i> 使い方</span>
-      <button class="panel-close" onclick="closePanel()"><i class="ph-bold ph-x"></i></button>
+      <span>📖 使い方</span>
+      <button class="panel-close" onclick="closePanel()">✕ 閉じる</button>
     </div>
     <div class="panel-body">
       <div class="howto-panel">
 
+        <!-- ★セキュリティボックスを一番上に移動 -->
         <div class="security-box">
-          <span class="icon"><i class="ph-fill ph-shield-check"></i></span>
+          <span class="icon">🛡️</span>
           <div>
             <p>
               <strong>テキスト処理はすべてブラウザ内で完結します。</strong><br>
-              <i class="ph-bold ph-file-doc"></i> <strong>Word(.docx)</strong>の読み取りもブラウザ内のみ。サーバー送信なし ✅<br>
-              <i class="ph-bold ph-file-pdf"></i> PDF・画像ファイルの読み取り時のみ、サーバー経由でAIを呼び出します。<br>
+              📄 <strong>Word(.docx)</strong>の読み取りもブラウザ内のみ。サーバー送信なし ✅<br>
+              📎 PDF・画像ファイルの読み取り時のみ、サーバー経由でAIを呼び出します。<br>
               🔒 個人情報はサーバーに保存されません。
             </p>
           </div>
         </div>
 
         <div class="howto-purpose">
-          <h3><i class="ph-fill ph-target"></i> このツールの目的</h3>
+          <h3>🎯 このツールの目的</h3>
           <p>
             相談メモや書類に含まれる<strong>個人名・住所・電話番号などの個人情報をワンクリックで匿名化</strong>し、そのまま安全にAIへ貼り付けられる状態にします。<br><br>
-            弁護士会の推奨に従い、AIへの入力前に個人情報を除去するための必須ツールです。
+            弁護士会の推奨に従い、AIへの入力前に個人情報を除去するための補助ツールです。
           </p>
         </div>
 
@@ -475,11 +695,11 @@
             <div class="step-item">
               <div class="step-num">1</div>
               <div>
-                <div class="step-title">「設定」タブで案件情報を入力</div>
+                <div class="step-title">「設定」タブで案件情報を入力する</div>
                 <div class="step-desc">
                   依頼者名・相手方名・事件番号を入力しておきます。<br>
                   入力した名前は、匿名化の際に自動で「依頼者A」「相手方B」に置き換えられます。<br>
-                  ※ 「弁護士向け設定を一括適用」ボタンが便利です。
+                  ※ 「弁護士向け設定を一括適用」ボタンを使うと、よく使う設定をまとめてセットできます。
                 </div>
               </div>
             </div>
@@ -487,24 +707,31 @@
             <div class="step-item">
               <div class="step-num">2</div>
               <div>
-                <div class="step-title">自動置換パターンを確認・選択</div>
+                <div class="step-title">自動置換パターンを確認・選択する</div>
                 <div class="step-desc">
-                  電話番号・住所・金額などを自動で【電話番号】【金額】などに変換します。<br>
-                  不要なパターンはOFFにしてご利用ください。
+                  電話番号・メールアドレス・住所・日付・金額などを自動で【電話番号】【住所】などに変換します。<br>
+                  チェックを入れたものだけが置換対象になります。不要なパターンはOFFにしてご利用ください。
                 </div>
               </div>
             </div>
 
-            <div class="step-item highlight">
-              <div class="step-num">3</div>
+            <div class="step-item" style="border:2px solid var(--sky);border-radius:10px;padding:10px 12px;background:var(--sky-light);">
+              <div class="step-num" style="background:var(--teal);">3</div>
               <div>
-                <div class="step-title">テキストまたはファイルを入力</div>
-                <div class="step-desc">
-                  右側のエリアの <strong>2つのタブ</strong> を切り替えて入力します。<br><br>
-                  <strong><i class="ph-fill ph-folder"></i> ファイルを読み込む</strong><br>
-                  Word / PDF / 画像をドロップします。Wordはブラウザ内で安全にテキスト変換されます。<br><br>
-                  <strong><i class="ph-fill ph-pencil-simple"></i> テキストを貼り付ける</strong><br>
-                  文章を直接コピー＆ペーストする場合はこちらです。
+                <div class="step-title" style="color:var(--teal);font-size:14px;">テキストまたはファイルを入力する　★このツールの特徴</div>
+                <div class="step-desc" style="color:var(--text-sub);">
+                  右側の入力エリアに <strong>2つのタブ</strong> が表示されています。用途に合わせて切り替えてください。<br><br>
+
+                  <span style="font-weight:700;color:var(--teal);">📂 タブ①「ファイルを読み込む」（起動時のデフォルト）</span><br>
+                  　Word(.docx) / PDF / 画像（JPG・PNG）を読み取れます。<br>
+                  　ファイルを大きなエリアにドロップするか、「ファイルを選択」ボタンから選んでください。<br>
+                  　<strong>Word(.docx) はブラウザ内だけで変換。外部サーバーへの送信なし ✅</strong><br>
+                  　PDF・画像はAIが自動でテキストを読み取り、テキストタブに展開されます。<br><br>
+
+                  <span style="font-weight:700;color:var(--teal);">✏️ タブ②「テキストを貼り付ける」</span><br>
+                  　相談メモや書類の文章を直接コピー＆ペーストする場合はこちら。<br>
+                  　ファイル読み取り完了後も自動でこのタブに切り替わります。<br>
+                  　テキストエリアにファイルをドロップして読み取ることも可能です。
                 </div>
               </div>
             </div>
@@ -512,9 +739,11 @@
             <div class="step-item">
               <div class="step-num">4</div>
               <div>
-                <div class="step-title">「ワンボタン匿名化」をクリック</div>
+                <div class="step-title">「🔒 ワンボタン匿名化」をクリックする</div>
                 <div class="step-desc">
-                  自動で一括置換されます。置換箇所は<span class="anon-tag">黄色くハイライト</span>され一目で確認できます。（Ctrl + Enter も可）
+                  ステップ1〜2で設定したルールにもとづいて、自動で一括置換されます。<br>
+                  置換された箇所は<span style="background:#fff9e6;border:1px solid #f0cc6a;border-radius:3px;padding:0 4px;color:#92650a;font-weight:500;">黄色くハイライト</span>表示されるので、どこが匿名化されたか一目でわかります。<br>
+                  ※ キーボードショートカット「Ctrl + Enter」でも実行できます。
                 </div>
               </div>
             </div>
@@ -522,12 +751,25 @@
             <div class="step-item">
               <div class="step-num">5</div>
               <div>
-                <div class="step-title">コピーしてAIに貼り付ける</div>
+                <div class="step-title">「📋 コピー」してAIに貼り付ける</div>
                 <div class="step-desc">
-                  出力エリアの「コピー」ボタンを押し、そのまま ChatGPT や Claude 等に貼り付けてご利用ください。
+                  出力エリアの「📋 コピー」ボタンを押すと、匿名化済みテキストがクリップボードにコピーされます。<br>
+                  そのまま ChatGPT・Claude・Gemini・NotebookLM などに貼り付けてご利用ください。<br>
+                  ※ コピー完了後、画面上部に緑のバナーで確認メッセージが表示されます。
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        <div class="howto-section">
+          <h4>こんなときに便利</h4>
+          <div class="tip-list">
+            <div class="tip-item"><span class="tip-icon">⚖️</span><span>相談内容をAIで時系列に整理したいとき</span></div>
+            <div class="tip-item"><span class="tip-icon">📄</span><span>準備書面・証拠説明書の下書きをAIに手伝わせるとき</span></div>
+            <div class="tip-item"><span class="tip-icon">🔍</span><span>判例調査の質問文を作るとき（個人情報なしで投げられる）</span></div>
+            <div class="tip-item"><span class="tip-icon">💬</span><span>複数の案件をNotebook LMなどで整理・分析するとき</span></div>
+            <div class="tip-item"><span class="tip-icon">📋</span><span>他のスタッフと事案概要を共有するとき</span></div>
           </div>
         </div>
 
@@ -538,17 +780,18 @@
   <!-- ══ 設定パネル ══ -->
   <div class="sidebar" id="panel-settings">
     <div class="panel-header">
-      <span><i class="ph-fill ph-gear"></i> 設定</span>
-      <button class="panel-close" onclick="closePanel()"><i class="ph-bold ph-x"></i></button>
+      <span>⚙️ 設定</span>
+      <button class="panel-close" onclick="closePanel()">✕ 閉じる</button>
     </div>
     <div class="panel-body">
 
       <div class="settings-step-list">
         
+        <!-- Step 1 -->
         <div class="settings-step-item">
-          <div class="settings-step-num">1</div>
+          <div class="settings-step-num blue">1</div>
           <div style="flex:1; min-width:0;">
-            <div class="settings-section-title">案件情報</div>
+            <div class="settings-section-title title-blue">案件情報</div>
             <div class="field">
               <label>依頼者名（原告）</label>
               <input type="text" id="clientName" placeholder="例：山田太郎">
@@ -564,42 +807,45 @@
           </div>
         </div>
 
+        <!-- Step 2 -->
         <div class="settings-step-item">
-          <div class="settings-step-num">2</div>
+          <div class="settings-step-num green">2</div>
           <div style="flex:1; min-width:0;">
-            <div class="settings-section-title">名前・用語の置換</div>
-            
+            <div class="settings-section-title title-green">名前・用語の置換</div>
+            <!-- AI自動検出ボタン -->
             <button class="ai-detect-btn" id="aiDetectBtn" onclick="detectNamesWithAI()">
-              <i class="ph-fill ph-robot ai-detect-icon"></i>
+              <span class="ai-detect-icon">🤖</span>
               <span class="ai-detect-label">AIで名前を自動検出</span>
-              <span class="ai-detect-sub">テキストから抽出</span>
+              <span class="ai-detect-sub">テキストから人名・組織名を抽出</span>
             </button>
             <div id="aiDetectStatus" class="ai-detect-status" style="display:none;"></div>
-            
-            <div class="col-header" style="margin-top:16px;">
+            <div class="col-header" style="margin-top:10px;">
               <span>元の名前・用語</span>
               <span>置換後の表現</span>
               <span></span>
             </div>
             <div id="mappingList"></div>
-            <button class="add-btn" onclick="addMapping()"><i class="ph-bold ph-plus"></i> 置換ルールを追加</button>
+            <button class="add-btn" onclick="addMapping()">＋ 置換ルールを追加</button>
           </div>
         </div>
 
+        <!-- Step 3 -->
         <div class="settings-step-item">
-          <div class="settings-step-num">3</div>
+          <div class="settings-step-num teal">3</div>
           <div style="flex:1; min-width:0;">
-            <div class="settings-section-title">自動置換パターン</div>
+            <div class="settings-section-title title-teal">自動置換パターン</div>
             <div id="presetList"></div>
           </div>
         </div>
 
       </div>
 
-      <div style="margin-top: 40px; padding-top: 24px; border-top: 1px dashed var(--border-color); display:flex; flex-direction:column; gap:16px;">
+      <!-- 下部ボタンエリア -->
+      <div style="margin-top: 40px; padding-top: 24px; border-top: 1px dashed var(--border); display:flex; flex-direction:column; gap:16px;">
         <button class="default-btn" onclick="loadLawyerDefaults()">
-          <i class="ph-fill ph-scales"></i> 弁護士向け設定を一括適用
+          ⚖️ 弁護士向け設定を一括適用
         </button>
+        <!-- デモデータ・クリア（薄文字リンク） -->
         <div style="display:flex; justify-content:center; gap:24px;">
           <button class="text-link-btn" onclick="loadDemoData()">デモデータを入力</button>
           <button class="text-link-btn" onclick="clearSettings()">設定をクリア</button>
@@ -616,16 +862,17 @@
 
     <div class="pane-card" id="mainInputCard">
       <div class="pane-header">
-        <span class="pane-label"><i class="ph-fill ph-pencil-line"></i> テキストまたはファイルを入力</span>
+        <span class="pane-label">📥 ステップ 3｜テキストまたはファイルを入力</span>
         <span class="char-count" id="inputCount">0 文字</span>
       </div>
 
+      <!-- モード切替タブ -->
       <div class="input-mode-tabs">
         <button class="imt-btn active" id="tabFile" onclick="switchInputMode('file')">
-          <i class="ph-fill ph-folder"></i> ファイルを読み込む
+          📂 ファイルを読み込む
         </button>
         <button class="imt-btn" id="tabText" onclick="switchInputMode('text')">
-          <i class="ph-fill ph-text-t"></i> テキストを貼り付ける
+          ✏️ テキストを貼り付ける
         </button>
       </div>
 
@@ -637,22 +884,22 @@
         <!-- ファイルパネル -->
         <div class="file-panel" id="filePanel">
           <div class="drop-area" id="dropArea" onclick="document.getElementById('fileInput').click()">
-            <div class="drop-icon"><i class="ph-fill ph-upload-simple"></i></div>
+            <div class="drop-icon">📂</div>
             <div class="drop-main-text">ここにファイルをドロップ</div>
             <div class="drop-sub-text">またはクリックしてファイルを選択</div>
             <div class="format-badges">
-              <span class="fmt-badge word"><i class="ph-fill ph-file-doc"></i> Word .docx <span class="badge-note">（ブラウザ内変換）</span></span>
-              <span class="fmt-badge pdf"><i class="ph-fill ph-file-pdf"></i> PDF</span>
-              <span class="fmt-badge img"><i class="ph-fill ph-image"></i> JPG / PNG</span>
+              <span class="fmt-badge word">📄 Word .docx <span class="badge-note">（ブラウザ内変換・外部送信なし）</span></span>
+              <span class="fmt-badge pdf">📕 PDF</span>
+              <span class="fmt-badge img">🖼️ JPG / PNG</span>
             </div>
           </div>
-          <div class="or-divider">または</div>
+          <div class="or-divider">またはボタンから選択</div>
           <div class="file-action-row">
             <button class="fa-btn" onclick="document.getElementById('fileInput').click()">
-              <i class="ph-bold ph-paperclip"></i> ファイルを選択
+              <span class="fa-icon">📎</span> ファイルを選択
             </button>
             <button class="fa-btn" onclick="switchInputMode('text')">
-              <i class="ph-bold ph-keyboard"></i> 直接テキスト入力
+              <span class="fa-icon">✏️</span> テキスト入力に切替
             </button>
           </div>
         </div>
@@ -660,16 +907,18 @@
         <!-- テキストパネル -->
         <div class="text-panel hidden" id="textPanel">
           <textarea id="inputText"
-            placeholder="ここに相談メモや書類のテキストを貼り付けてください。
-ファイルをここへドロップして読み取ることも可能です。
+            placeholder="ここに相談メモ・書類のテキストを貼り付けてください。
+
+または左の「ファイルを読み込む」タブからWord / PDF / 画像も読み取れます。
+ファイルをここへドロップすることも可能です。
 
 例：
-依頼者の山田太郎は令和5年3月15日に相手方の佐藤次郎から
+依頼者の山田太郎（42歳）は令和5年3月15日に相手方の佐藤次郎から
 300万円の損害を受けたと主張しています。"
             oninput="updateCount()"></textarea>
           <div class="text-panel-footer">
-            <span class="tpf-hint"><i class="ph-fill ph-info"></i> ファイルをドロップしても読み取れます</span>
-            <button class="switch-to-file-btn" onclick="switchInputMode('file')"><i class="ph-bold ph-folder"></i> ファイル入力へ</button>
+            <span class="tpf-hint">💡 ファイルをここへドロップしても読み取れます</span>
+            <button class="switch-to-file-btn" onclick="switchInputMode('file')">📂 ファイル入力に切替</button>
           </div>
         </div>
 
@@ -685,19 +934,19 @@
     </div>
 
     <div class="control-bar">
-      <button class="anon-btn" onclick="anonymize()"><i class="ph-fill ph-lock-key"></i> ワンボタン匿名化</button>
-      <button class="clear-main-btn" onclick="clearMain()"><i class="ph-bold ph-eraser"></i> クリア</button>
-      <span class="shortcut-hint">Ctrl + Enter</span>
-      <div class="stats-badge" id="statsBadge"><i class="ph-bold ph-check"></i> <span id="statsNum" style="margin:0 4px;">0</span> 件を置換しました</div>
+      <button class="anon-btn" onclick="anonymize()">🔒 ワンボタン匿名化</button>
+      <button class="clear-main-btn" onclick="clearMain()">クリア</button>
+      <span class="shortcut-hint">Ctrl + Enter でも実行</span>
+      <div class="stats-badge" id="statsBadge">✓ <span id="statsNum">0</span> 件を置換しました</div>
     </div>
 
     <div class="pane-card">
       <div class="pane-header">
-        <span class="pane-label"><i class="ph-fill ph-check-square"></i> 匿名化済みテキスト</span>
-        <button class="copy-btn" id="copyBtn" onclick="copyOutput()"><i class="ph-bold ph-copy"></i> コピー</button>
+        <span class="pane-label">✅ 匿名化済みテキスト（AIにそのまま貼り付けOK）</span>
+        <button class="copy-btn" id="copyBtn" onclick="copyOutput()">📋 コピー</button>
       </div>
       <div id="output" class="output-body">
-        <span class="output-placeholder">匿名化後の安全なテキストがここに表示されます。そのままAIへ貼り付け可能です。</span>
+        <span class="output-placeholder">匿名化後のテキストがここに表示されます。</span>
       </div>
       <div id="outputPlain" style="display:none;"></div>
     </div>
@@ -705,12 +954,12 @@
   </div>
 </div>
 
-<div class="toast" id="toast"><i class="ph-bold ph-info"></i> <span id="toastMsg"></span></div>
+<div class="toast" id="toast"></div>
 
 <div class="copy-confirm" id="copyConfirm">
-  <i class="ph-fill ph-check-circle" style="font-size: 20px;"></i>
-  <span>匿名化済みテキストをコピーしました。AIにそのまま貼り付けできます。</span>
-  <button class="confirm-close" onclick="closeCopyConfirm()"><i class="ph-bold ph-x"></i> 閉じる</button>
+  <span>✅</span>
+  <span>匿名化済みテキストをクリップボードにコピーしました　AIにそのまま貼り付けできます</span>
+  <button class="confirm-close" onclick="closeCopyConfirm()">閉じる ×</button>
 </div>
 
 <script>
@@ -772,18 +1021,24 @@ async function handleFileSelect(file) {
       const arrayBuffer = await file.arrayBuffer();
       const result = await mammoth.extractRawText({ arrayBuffer });
       const text = result.value;
-      if (!text.trim()) { hideReading(); showToast('⚠️ テキストを抽出できませんでした'); return; }
+      if (!text.trim()) { hideReading(); showToast('⚠️ テキストを抽出できませんでした（画像のみのファイルの可能性があります）'); return; }
       document.getElementById('inputText').value = text;
       updateCount(); hideReading();
       switchInputMode('text');
-      showToast(`✅ ${file.name} を読み込みました（※ローカル変換）`);
+      showToast(`✅ ${file.name} の読み取り完了（${text.length}文字）　※サーバー送信なし`);
     } catch(e) {
-      hideReading(); showToast('⚠️ Wordファイルの読み取りエラー'); console.error(e);
+      hideReading(); showToast('⚠️ Wordファイルの読み取りエラー: ' + e.message); console.error(e);
     }
     return;
   }
 
   /* ── PDF・画像: Claude API 経由で読み取り ── */
+  /* PDFサイズチェック（20MB超は警告） */
+  if (ext === 'pdf' && file.size > 20 * 1024 * 1024) {
+    showToast('⚠️ PDFが大きすぎます（20MB以下のファイルをお使いください）');
+    return;
+  }
+
   showReading('AIがファイルを読み取り中...');
   try {
     const base64 = await fileToBase64(file);
@@ -791,25 +1046,37 @@ async function handleFileSelect(file) {
     let messages;
 
     if (ext === 'pdf') {
-      messages = [{ role: 'user', content: [{ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64 } }, { type: 'text', text: 'このPDFに含まれるすべてのテキストを正確に書き出してください。テキストのみ出力してください。' }] }];
+      messages = [{ role: 'user', content: [
+        { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64 } },
+        { type: 'text', text: 'このPDFに含まれるすべてのテキストを正確に書き出してください。テキストのみ出力してください。' }
+      ]}];
     } else {
-      messages = [{ role: 'user', content: [{ type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } }, { type: 'text', text: 'この画像に含まれるすべてのテキストを正確に書き出してください。テキストのみ出力してください。' }] }];
+      messages = [{ role: 'user', content: [
+        { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
+        { type: 'text', text: 'この画像に含まれるすべてのテキストを正確に書き出してください。テキストのみ出力してください。' }
+      ]}];
     }
 
     const res = await fetch('https://tokumeikakun-api.yymmatsu.workers.dev', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-opus-4-5', max_tokens: 4096, messages })
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 4096, messages })
     });
 
-    if (!res.ok) { const err = await res.json(); throw new Error(err.error?.message || `APIエラー (${res.status})`); }
+    if (!res.ok) {
+      let errMsg = `APIエラー (${res.status})`;
+      try { const err = await res.json(); errMsg = err.error?.message || errMsg; } catch(_) {}
+      throw new Error(errMsg);
+    }
 
     const data = await res.json();
+    if (!data.content || !data.content.length) throw new Error('APIからの応答が空です。もう一度お試しください。');
     const extracted = data.content.filter(b => b.type === 'text').map(b => b.text).join('\n');
+    if (!extracted.trim()) throw new Error('テキストを抽出できませんでした（画像のみのPDFの可能性があります）');
     document.getElementById('inputText').value = extracted;
     updateCount(); hideReading();
     switchInputMode('text');
-    showToast(`✅ ${file.name} の読み取り完了`);
+    showToast(`✅ ${file.name} の読み取り完了（${extracted.length}文字）`);
   } catch(e) {
     hideReading(); showToast('⚠️ 読み取りエラー: ' + e.message); console.error(e);
   }
@@ -837,7 +1104,7 @@ const presets = [
   { id:'address', label:'住所（都道府県〜）', sample:'例：東京都渋谷区〇〇1-2-3', pattern:/(北海道|[東西南北]?[都道府県][^\s、。\n「」（）()]{2,15})/g,            replace:'【住所】' },
   { id:'date',    label:'具体的な日付',       sample:'例：令和5年3月15日',       pattern:/(令和|平成|昭和)\d{1,2}年\d{1,2}月\d{1,2}日/g,                        replace:'【日付】' },
   { id:'amount',  label:'金額',               sample:'例：300万円 / 1,200,000円', pattern:/\d{1,3}(,\d{3})*万?円/g,                                            replace:'【金額】' },
-  { id:'mynum',   label:'マイナンバー',       sample:'例：1234-5678-9012',    pattern:/\d{4}[-－]?\d{4}[-－]?\d{4}/g,                                        replace:'【マイナンバー】' }
+  { id:'mynum',   label:'マイナンバー（12桁）', sample:'例：1234-5678-9012',    pattern:/\d{4}[-－]?\d{4}[-－]?\d{4}/g,                                        replace:'【マイナンバー】' }
 ];
 
 let activePresets = new Set(['phone','email']);
@@ -878,10 +1145,10 @@ function init() {
 function renderPresets() {
   document.getElementById('presetList').innerHTML = presets.map(p => `
     <div class="preset-item ${activePresets.has(p.id)?'active':''}" onclick="togglePreset('${p.id}')">
-      <div class="preset-check"><i class="ph-bold ph-check checkmark"></i></div>
+      <div class="preset-check"><span class="checkmark">✓</span></div>
       <div>
-        <span class="preset-name">${p.label}</span>
-        <span class="preset-sample">${p.sample}</span>
+        <div class="preset-name">${p.label}</div>
+        <div class="preset-sample">${p.sample}</div>
       </div>
     </div>`).join('');
 }
@@ -893,7 +1160,7 @@ function renderMappings() {
     <div class="mapping-row">
       <input type="text" placeholder="元の名前・用語" value="${escH(m.from)}" oninput="mappings[${i}].from=this.value">
       <input type="text" placeholder="例：Aさん" value="${escH(m.to)}" oninput="mappings[${i}].to=this.value">
-      <button class="del-btn" onclick="removeMapping(${i})"><i class="ph-bold ph-x"></i></button>
+      <button class="del-btn" onclick="removeMapping(${i})">×</button>
     </div>`).join('');
 }
 
@@ -905,7 +1172,7 @@ function loadLawyerDefaults() {
   const o = document.getElementById('opponentName').value.trim();
   mappings = [{from: c||'依頼者名', to:'依頼者A'}, {from: o||'相手方名', to:'相手方B'}, {from:'', to:''}];
   renderMappings(); activePresets = new Set(['phone','email','address','date','amount']); renderPresets();
-  showToast('弁護士向けデフォルトを一括適用しました');
+  showToast('弁護士向けデフォルトを一括適用しました ✓');
 }
 
 function loadDemoData() {
@@ -938,7 +1205,7 @@ Email：yamada.taro@example.com
 ３．上記に伴う遅延損害金の請求`;
   updateCount();
   switchInputMode('text');
-  showToast('デモデータを読み込みました。「設定」タブで確認できます');
+  showToast('デモデータを読み込みました。「設定」タブで確認できます ✓');
 }
 
 function clearSettings() {
@@ -981,8 +1248,8 @@ function copyOutput() {
   if (!plain) { showToast('⚠️ 先に匿名化を実行してください'); return; }
 
   const onSuccess = () => {
-    const btn = document.getElementById('copyBtn'); btn.innerHTML = '<i class="ph-bold ph-check"></i> コピー済み'; btn.classList.add('copied');
-    setTimeout(()=>{ btn.innerHTML='<i class="ph-bold ph-copy"></i> コピー'; btn.classList.remove('copied'); }, 2500); showCopyConfirm();
+    const btn = document.getElementById('copyBtn'); btn.textContent = '✓ コピー済み'; btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent='📋 コピー'; btn.classList.remove('copied'); }, 2500); showCopyConfirm();
   };
   if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(plain).then(onSuccess).catch(()=> fallbackCopy(plain, onSuccess)); }
   else { fallbackCopy(plain, onSuccess); }
@@ -997,7 +1264,7 @@ function fallbackCopy(text, callback) {
 
 function clearMain() {
   document.getElementById('inputText').value = '';
-  document.getElementById('output').innerHTML = '<span class="output-placeholder">匿名化後の安全なテキストがここに表示されます。そのままAIへ貼り付け可能です。</span>';
+  document.getElementById('output').innerHTML = '<span class="output-placeholder">匿名化後のテキストがここに表示されます。</span>';
   document.getElementById('outputPlain').textContent = '';
   document.getElementById('inputCount').textContent = '0 文字';
   document.getElementById('statsBadge').classList.remove('show');
@@ -1005,8 +1272,8 @@ function clearMain() {
 }
 
 function updateCount() { document.getElementById('inputCount').textContent = document.getElementById('inputText').value.length.toLocaleString() + ' 文字'; }
-function showToast(msg) { const t = document.getElementById('toast'); document.getElementById('toastMsg').innerHTML = msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 3000); }
-function showCopyConfirm() { const el = document.getElementById("copyConfirm"); el.classList.add("show"); setTimeout(()=>el.classList.remove("show"), 4000); }
+function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2500); }
+function showCopyConfirm() { const el = document.getElementById("copyConfirm"); el.classList.add("show"); setTimeout(()=>el.classList.remove("show"), 5000); }
 function closeCopyConfirm() { document.getElementById("copyConfirm").classList.remove("show"); }
 function escH(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function escR(s) { return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
@@ -1022,9 +1289,9 @@ async function detectNamesWithAI() {
   const statusEl = document.getElementById('aiDetectStatus');
 
   btn.disabled = true;
-  statusEl.style.display = 'flex';
+  statusEl.style.display = 'block';
   statusEl.className = 'ai-detect-status loading';
-  statusEl.innerHTML = '<i class="ph-bold ph-spinner spinner" style="width:16px;height:16px;border:none;"></i> AIが人名・組織名を解析中...';
+  statusEl.textContent = '🤖 AIが人名・組織名を解析中...';
 
   try {
     const prompt = `以下のテキストに含まれる人名・組織名・会社名をすべて抽出してください。
@@ -1045,7 +1312,7 @@ ${text.slice(0, 3000)}`;
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-opus-4-5',
+        model: 'claude-sonnet-4-6',
         max_tokens: 512,
         messages: [{ role: 'user', content: prompt }]
       })
@@ -1055,13 +1322,16 @@ ${text.slice(0, 3000)}`;
     const data = await res.json();
     const raw = data.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
 
+    // JSON配列を抽出
     const match = raw.match(/\[[\s\S]*\]/);
     if (!match) throw new Error('名前が見つかりませんでした');
     const names = JSON.parse(match[0]);
     if (!Array.isArray(names) || names.length === 0) throw new Error('人名・組織名が検出されませんでした');
 
+    // すでに設定済みの名前を除外して追加
     const existing = mappings.map(m => m.from.trim()).filter(Boolean);
     let addCount = 0;
+    // 最後の空行を除いてフィルタ
     mappings = mappings.filter(m => m.from.trim() || m.to.trim());
 
     names.forEach((name, i) => {
@@ -1070,26 +1340,28 @@ ${text.slice(0, 3000)}`;
       mappings.push({ from: name, to: label });
       addCount++;
     });
-    mappings.push({ from: '', to: '' });
+    mappings.push({ from: '', to: '' }); // 末尾に空行
     renderMappings();
 
+    // 設定パネルを開く
     const btnSettings = document.querySelector('.hnav-btn[onclick*="settings"]');
     if (btnSettings && !document.getElementById('panel-settings').classList.contains('open')) {
       switchPanel('settings', btnSettings);
     }
 
     statusEl.className = 'ai-detect-status success';
-    statusEl.innerHTML = `<i class="ph-fill ph-check-circle"></i> ${addCount}件を自動検出しました。置換後の表現を確認・編集してください。`;
+    statusEl.textContent = `✅ ${addCount}件を自動検出しました。置換後の表現を確認・編集してください。`;
     showToast(`✅ ${names.length}件の名前を検出 → 置換リストに追加しました`);
 
   } catch(e) {
     statusEl.className = 'ai-detect-status error';
-    statusEl.innerHTML = '<i class="ph-fill ph-warning-circle"></i> ' + e.message;
+    statusEl.textContent = '⚠️ ' + e.message;
     console.error(e);
   } finally {
     btn.disabled = false;
   }
 }
+
 
 /* ══ パスワードゲート・トライアル管理 ══ */
 const TRIAL_KEY   = 'tokumeikakun_trial';
@@ -1109,11 +1381,7 @@ function updateTrialBadge() {
   if (left <= 0) { badge.classList.add('hidden'); return; }
   badge.classList.remove('hidden');
   remain.textContent = left;
-  if(left === 1) {
-      badge.classList.add('warning');
-  } else {
-      badge.classList.remove('warning');
-  }
+  badge.classList.toggle('warning', left === 1);
 }
 
 function checkTrialOrPaid() {
@@ -1124,6 +1392,7 @@ function checkTrialOrPaid() {
     updateTrialBadge();
     return true;
   }
+  // 3回使い切った → ゲート表示
   document.getElementById('gateOverlay').classList.remove('hidden');
   return false;
 }
@@ -1135,7 +1404,7 @@ function checkPassword() {
     localStorage.setItem(PAID_KEY, '1');
     document.getElementById('gateOverlay').classList.add('hidden');
     updateTrialBadge();
-    showToast('✅ パスワードが確認されました');
+    showToast('✅ パスワードが確認されました。引き続きご利用ください。');
   } else {
     err.textContent = 'パスワードが正しくありません';
     document.getElementById('gateInput').value = '';
@@ -1143,12 +1412,14 @@ function checkPassword() {
   }
 }
 
+// Enterキーでパスワード送信
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && document.activeElement.id === 'gateInput') checkPassword();
 });
 
 document.addEventListener('keydown', e => { if (e.key==='Enter'&&(e.ctrlKey||e.metaKey)) anonymize(); });
 
+// 安全に初期化するための処理
 document.addEventListener('DOMContentLoaded', () => {
   try {
     init();
