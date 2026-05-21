@@ -614,6 +614,27 @@
   }
   .trial-badge.warning { border-color: #fbbf24; color: #92400e; background: #fffbeb; }
   .trial-badge.hidden { display: none; }
+
+  /* ══ 名前プレビュー・ヒント ══ */
+  /* Step1 自動処理バッジ */
+  .auto-badge {
+    display: block; font-size: 10px; font-weight: 400;
+    color: var(--emerald); margin-top: 3px; letter-spacing: 0;
+  }
+  .field-sub {
+    font-size: 10px; font-weight: 400; color: var(--text-muted); margin-left: 6px;
+  }
+
+  .name-preview {
+    margin-top: 5px; padding: 6px 10px;
+    background: #f0fdf4; border: 1px solid #86efac; border-radius: 6px;
+    font-size: 11px; color: #166534; line-height: 1.8;
+  }
+  .name-hint {
+    margin-top: 8px; font-size: 11px; color: var(--text-muted);
+    background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px;
+    padding: 6px 10px;
+  }
 </style>
 <!-- mammoth.js: Wordファイル(.docx)をブラウザだけでテキスト変換 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
@@ -791,19 +812,24 @@
         <div class="settings-step-item">
           <div class="settings-step-num blue">1</div>
           <div style="flex:1; min-width:0;">
-            <div class="settings-section-title title-blue">案件情報</div>
-            <div class="field">
-              <label>依頼者名（原告）</label>
-              <input type="text" id="clientName" placeholder="例：山田太郎">
+            <div class="settings-section-title title-blue">案件情報
+              <span class="auto-badge">✅ ここに入力するだけでStep2への再入力は不要です</span>
             </div>
             <div class="field">
-              <label>相手方名（被告）</label>
-              <input type="text" id="opponentName" placeholder="例：佐藤次郎">
+              <label>依頼者名（原告）<span class="field-sub">苗字 名前の順でスペース区切り推奨</span></label>
+              <input type="text" id="clientName" placeholder="例：山田 太郎" oninput="onNameInput()">
+              <div class="name-preview" id="clientPreview" style="display:none;"></div>
+            </div>
+            <div class="field">
+              <label>相手方名（被告）<span class="field-sub">苗字 名前の順でスペース区切り推奨</span></label>
+              <input type="text" id="opponentName" placeholder="例：佐藤 次郎" oninput="onNameInput()">
+              <div class="name-preview" id="opponentPreview" style="display:none;"></div>
             </div>
             <div class="field">
               <label>事件番号</label>
               <input type="text" id="caseNo" placeholder="例：令和6年（ワ）第1234号">
             </div>
+            <div class="name-hint">💡 スペースで「苗字　名前」と区切ると、苗字・名前・省略形も自動で置換します</div>
           </div>
         </div>
 
@@ -935,7 +961,7 @@
 
     <div class="control-bar">
       <button class="anon-btn" onclick="anonymize()">🔒 ワンボタン匿名化</button>
-      <button class="clear-main-btn" onclick="clearMain()">クリア</button>
+      <button class="clear-main-btn" onclick="clearOutput()">結果をクリア</button>
       <span class="shortcut-hint">Ctrl + Enter でも実行</span>
       <div class="stats-badge" id="statsBadge">✓ <span id="statsNum">0</span> 件を置換しました</div>
     </div>
@@ -1168,11 +1194,14 @@ function addMapping() { mappings.push({from:'',to:''}); renderMappings(); setTim
 function removeMapping(i) { mappings.splice(i,1); if(!mappings.length) mappings.push({from:'',to:''}); renderMappings(); }
 
 function loadLawyerDefaults() {
-  const c = document.getElementById('clientName').value.trim();
-  const o = document.getElementById('opponentName').value.trim();
-  mappings = [{from: c||'依頼者名', to:'依頼者A'}, {from: o||'相手方名', to:'相手方B'}, {from:'', to:''}];
-  renderMappings(); activePresets = new Set(['phone','email','address','date','amount']); renderPresets();
-  showToast('弁護士向けデフォルトを一括適用しました ✓');
+  // Step1の名前はanonymize()で直接処理するのでmappingsには追加しない
+  mappings = [{from:'', to:''}];
+  renderMappings();
+  activePresets = new Set(['phone','email','address','date','amount']);
+  renderPresets();
+  // Step1の入力値をプレビュー更新
+  onNameInput();
+  showToast('弁護士向け設定を一括適用しました ✓ 名前はStep1から自動で処理します');
 }
 
 function loadDemoData() {
@@ -1225,8 +1254,22 @@ function anonymize() {
 
   const c = document.getElementById('clientName').value.trim();
   const o = document.getElementById('opponentName').value.trim();
-  if (c) { const h=text.match(new RegExp(escR(c),'g')); if(h) count+=h.length; text=text.replace(new RegExp(escR(c),'g'),'依頼者A'); }
-  if (o) { const h=text.match(new RegExp(escR(o),'g')); if(h) count+=h.length; text=text.replace(new RegExp(escR(o),'g'),'相手方B'); }
+
+  // 表記ゆれ対応：スペースあり・なし・苗字のみ・名前のみ を長い順に置換
+  if (c) {
+    for (const v of buildNameVariants(c)) {
+      const re = new RegExp(escR(v), 'g');
+      const h = text.match(re); if (h) count += h.length;
+      text = text.replace(re, '依頼者A');
+    }
+  }
+  if (o) {
+    for (const v of buildNameVariants(o)) {
+      const re = new RegExp(escR(v), 'g');
+      const h = text.match(re); if (h) count += h.length;
+      text = text.replace(re, '相手方B');
+    }
+  }
 
   const valid = mappings.filter(m=>m.from.trim()&&m.to.trim()).sort((a,b)=>b.from.length-a.from.length);
   for (const m of valid) {
@@ -1260,6 +1303,63 @@ function fallbackCopy(text, callback) {
   document.body.appendChild(ta); ta.focus(); ta.select();
   try { document.execCommand('copy'); callback(); } catch(e) { showToast('⚠️ コピーに失敗しました。手動で選択してください。'); }
   document.body.removeChild(ta);
+}
+
+/* ══ 名前の表記ゆれ対応 ══ */
+/**
+ * 「山田 太郎」→ 山田太郎・山田 太郎・山田・太郎 の全パターンを返す
+ * スペースなし名前でも苗字推測（2文字前後）は行わず、そのまま返す
+ */
+function buildNameVariants(fullName) {
+  const name = fullName.trim();
+  if (!name) return [];
+  // 半角・全角スペースで分割
+  const parts = name.split(/[\s\u3000]+/).filter(Boolean);
+  if (parts.length < 2) return [name]; // スペースなし → そのまま
+
+  const sei  = parts[0];           // 苗字
+  const mei  = parts.slice(1).join(''); // 名前（複数パーツも結合）
+  const full  = sei + mei;         // スペースなしフルネーム
+
+  // 長い順に並べて誤マッチを防ぐ
+  return [
+    name,  // 山田 太郎（スペースあり）
+    full,  // 山田太郎
+    sei,   // 山田
+    mei,   // 太郎
+  ];
+}
+
+/** Step1入力時にプレビューを更新 */
+function onNameInput() {
+  const clientVal  = document.getElementById('clientName').value.trim();
+  const opponentVal = document.getElementById('opponentName').value.trim();
+
+  updatePreview('clientPreview',  clientVal,  '依頼者A');
+  updatePreview('opponentPreview', opponentVal, '相手方B');
+}
+
+function updatePreview(elId, name, label) {
+  const el = document.getElementById(elId);
+  if (!name) { el.style.display = 'none'; return; }
+  const variants = buildNameVariants(name);
+  const hasParts = variants.length > 1;
+  const tags = variants.map(v =>
+    `<span style="background:#dcfce7;border:1px solid #86efac;border-radius:4px;padding:2px 8px;font-size:12px;font-weight:500;">${v}</span>`
+  ).join('<span style="color:#94a3b8;margin:0 3px;">·</span>');
+  const hint = hasParts
+    ? `<span style="font-size:10px;color:#64748b;margin-left:6px;">（スペースあり・なし・苗字のみ・名前のみを自動で検出）</span>`
+    : '';
+  el.innerHTML = `🔄 <strong style="color:#059669;">${label}</strong> に自動置換：${tags}${hint}`;
+  el.style.display = 'block';
+}
+
+/* ══ 結果のみクリア（入力テキストは残す） ══ */
+function clearOutput() {
+  document.getElementById('output').innerHTML = '<span class="output-placeholder">匿名化後のテキストがここに表示されます。</span>';
+  document.getElementById('outputPlain').textContent = '';
+  document.getElementById('statsBadge').classList.remove('show');
+  showToast('結果をクリアしました。テキストはそのまま残っています。');
 }
 
 function clearMain() {
