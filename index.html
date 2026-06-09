@@ -1255,25 +1255,31 @@ function anonymize() {
   const c = document.getElementById('clientName').value.trim();
   const o = document.getElementById('opponentName').value.trim();
 
-  // 表記ゆれ対応：スペースあり・なし・苗字のみ・名前のみ を長い順に置換
+  // 表記ゆれ対応：スペースあり・なし・苗字のみ・名前のみ＋敬称 を長い順に置換
+  const KEISHO = '(様|殿|氏|さん|くん|先生|御中)?';
   if (c) {
     for (const v of buildNameVariants(c)) {
-      const re = new RegExp(escR(v), 'g');
+      const re = new RegExp(escR(v) + KEISHO, 'g');
       const h = text.match(re); if (h) count += h.length;
-      text = text.replace(re, '依頼者A');
+      text = text.replace(re, (m, k) => '依頼者A' + (k || ''));
     }
   }
   if (o) {
     for (const v of buildNameVariants(o)) {
-      const re = new RegExp(escR(v), 'g');
+      const re = new RegExp(escR(v) + KEISHO, 'g');
       const h = text.match(re); if (h) count += h.length;
-      text = text.replace(re, '相手方B');
+      text = text.replace(re, (m, k) => '相手方B' + (k || ''));
     }
   }
 
   const valid = mappings.filter(m=>m.from.trim()&&m.to.trim()).sort((a,b)=>b.from.length-a.from.length);
+  const KEISHO2 = '(様|殿|氏|さん|くん|先生|御中)?';
   for (const m of valid) {
-    const re=new RegExp(escR(m.from),'g'); const h=text.match(re); if(h) count+=h.length; text=text.replace(re, m.to);
+    // Step1で登録した名前末尾の敬称を除去して照合（AI検出で様込みになる場合も対応）
+    const fromClean = m.from.replace(/(様|殿|氏|さん|くん|先生|御中)$/, '');
+    const re = new RegExp(escR(fromClean) + KEISHO2, 'g');
+    const h = text.match(re); if (h) count += h.length;
+    text = text.replace(re, (match, k) => m.to + (k || ''));
   }
   for (const p of presets) {
     if (!activePresets.has(p.id)) continue;
@@ -1311,7 +1317,8 @@ function fallbackCopy(text, callback) {
  * スペースなし名前でも苗字推測（2文字前後）は行わず、そのまま返す
  */
 function buildNameVariants(fullName) {
-  const name = fullName.trim();
+  // 末尾の敬称を除去してからバリアントを生成
+  const name = fullName.trim().replace(/(様|殿|氏|さん|くん|先生|御中)$/, '');
   if (!name) return [];
   // 半角・全角スペースで分割
   const parts = name.split(/[\s\u3000]+/).filter(Boolean);
