@@ -717,7 +717,7 @@
             <div class="step-item">
               <div class="step-num">1</div>
               <div>
-                <div class="step-title">「設定」タブで案件情報を入力する</div>
+                <div class="step-title">「設定」タブで名前を登録する（またはAI自動検出を使う）</div>
                 <div class="step-desc">
                   依頼者名・相手方名・事件番号を入力しておきます。<br>
                   入力した名前は、匿名化の際に自動で「依頼者A」「相手方B」に置き換えられます。<br>
@@ -809,36 +809,11 @@
 
       <div class="settings-step-list">
         
-        <!-- Step 1 -->
+        <!-- Step 1（旧Step2）-->
         <div class="settings-step-item">
-          <div class="settings-step-num blue">1</div>
+          <div class="settings-step-num green">1</div>
           <div style="flex:1; min-width:0;">
-            <div class="settings-section-title title-blue">案件情報
-              <span class="auto-badge">✅ ここに入力するだけでStep2への再入力は不要です</span>
-            </div>
-            <div class="field">
-              <label>依頼者名（原告）<span class="field-sub">苗字 名前の順でスペース区切り推奨</span></label>
-              <input type="text" id="clientName" placeholder="例：山田 太郎" oninput="onNameInput()">
-              <div class="name-preview" id="clientPreview" style="display:none;"></div>
-            </div>
-            <div class="field">
-              <label>相手方名（被告）<span class="field-sub">苗字 名前の順でスペース区切り推奨</span></label>
-              <input type="text" id="opponentName" placeholder="例：佐藤 次郎" oninput="onNameInput()">
-              <div class="name-preview" id="opponentPreview" style="display:none;"></div>
-            </div>
-            <div class="field">
-              <label>事件番号</label>
-              <input type="text" id="caseNo" placeholder="例：令和6年（ワ）第1234号">
-            </div>
-            <div class="name-hint">💡 スペースで「苗字　名前」と区切ると、苗字・名前・省略形も自動で置換します</div>
-          </div>
-        </div>
-
-        <!-- Step 2 -->
-        <div class="settings-step-item">
-          <div class="settings-step-num green">2</div>
-          <div style="flex:1; min-width:0;">
-            <div class="settings-section-title title-green">名前・用語の置換</div>
+            <div class="settings-section-title title-green">名前・用語の置換<span class="auto-badge" style="margin-left:8px;">💡 AIで自動検出できます</span></div>
             <!-- AI自動検出ボタン -->
             <button class="ai-detect-btn" id="aiDetectBtn" onclick="detectNamesWithAI()">
               <span class="ai-detect-icon">🤖</span>
@@ -858,7 +833,7 @@
 
         <!-- Step 3 -->
         <div class="settings-step-item">
-          <div class="settings-step-num teal">3</div>
+          <div class="settings-step-num teal">2</div>
           <div style="flex:1; min-width:0;">
             <div class="settings-section-title title-teal">自動置換パターン</div>
             <div id="presetList"></div>
@@ -1134,7 +1109,7 @@ const presets = [
   { id:'mynum',   label:'マイナンバー（12桁）', sample:'例：1234-5678-9012',    pattern:/\d{4}[-－]?\d{4}[-－]?\d{4}/g,                                        replace:'【マイナンバー】' }
 ];
 
-let activePresets = new Set(['phone','email']);
+let activePresets = new Set(['phone','email','address','date','amount','mynum']);
 let mappings = [{ from:'', to:'' }];
 
 /* ══ パネル切替 ══ */
@@ -1198,15 +1173,13 @@ function loadLawyerDefaults() {
   // Step1の名前はanonymize()で直接処理するのでmappingsには追加しない
   mappings = [{from:'', to:''}];
   renderMappings();
-  activePresets = new Set(['phone','email','address','date','amount']);
+  activePresets = new Set(['phone','email','address','date','amount','mynum']);
   renderPresets();
-  // Step1の入力値をプレビュー更新
-  onNameInput();
-  showToast('弁護士向け設定を一括適用しました ✓ 名前はStep1から自動で処理します');
+  showToast('弁護士向け設定を一括適用しました ✓');
 }
 
 function loadDemoData() {
-  document.getElementById('clientName').value = '山田太郎'; document.getElementById('opponentName').value = '佐藤次郎'; document.getElementById('caseNo').value = '令和6年（ワ）第1234号';
+  // （案件情報セクション削除につき不要）
   mappings = [{from:'山田太郎', to:'依頼者A'}, {from:'佐藤次郎', to:'相手方B'}, {from:'株式会社サンプル', to:'相手方会社'}, {from:'', to:''}];
   renderMappings(); activePresets = new Set(['phone','email','address','date','amount','mynum']); renderPresets();
   document.getElementById('inputText').value = `【法律相談記録】
@@ -1239,8 +1212,8 @@ Email：yamada.taro@example.com
 }
 
 function clearSettings() {
-  document.getElementById('clientName').value = ''; document.getElementById('opponentName').value = ''; document.getElementById('caseNo').value = '';
-  mappings = [{from:'', to:''}]; renderMappings(); activePresets = new Set(['phone','email']); renderPresets();
+  // （案件情報セクション削除につき不要）
+  mappings = [{from:'', to:''}]; renderMappings(); activePresets = new Set(['phone','email','address','date','amount','mynum']); renderPresets();
   showToast('設定をクリアしました');
 }
 
@@ -1253,34 +1226,19 @@ function anonymize() {
   if (!text.trim()) { showToast('テキストを入力してください'); return; }
   let count = 0;
 
-  const c = document.getElementById('clientName').value.trim();
-  const o = document.getElementById('opponentName').value.trim();
-
-  // 表記ゆれ対応：スペースあり・なし・苗字のみ・名前のみ＋敬称 を長い順に置換
-  const KEISHO = '(様|殿|氏|さん|くん|先生|御中)?';
-  if (c) {
-    for (const v of buildNameVariants(c)) {
-      const re = new RegExp(escR(v) + KEISHO, 'g');
-      const h = text.match(re); if (h) count += h.length;
-      text = text.replace(re, (m, k) => '依頼者A' + (k || ''));
-    }
-  }
-  if (o) {
-    for (const v of buildNameVariants(o)) {
-      const re = new RegExp(escR(v) + KEISHO, 'g');
-      const h = text.match(re); if (h) count += h.length;
-      text = text.replace(re, (m, k) => '相手方B' + (k || ''));
-    }
-  }
+  // Step1削除につきclientName/opponentNameの処理は廃止
+  // mappings（Step1）で名前・表記ゆれをすべて処理
 
   const valid = mappings.filter(m=>m.from.trim()&&m.to.trim()).sort((a,b)=>b.from.length-a.from.length);
   const KEISHO2 = '(様|殿|氏|さん|くん|先生|御中)?';
   for (const m of valid) {
-    // Step1で登録した名前末尾の敬称を除去して照合（AI検出で様込みになる場合も対応）
-    const fromClean = m.from.replace(/(様|殿|氏|さん|くん|先生|御中)$/, '');
-    const re = new RegExp(escR(fromClean) + KEISHO2, 'g');
-    const h = text.match(re); if (h) count += h.length;
-    text = text.replace(re, (match, k) => m.to + (k || ''));
+    // buildNameVariantsで スペースあり・なし・苗字・名前 の全バリアントを生成
+    const variants = buildNameVariants(m.from);
+    for (const v of variants) {
+      const re = new RegExp(escR(v) + KEISHO2, 'g');
+      const h = text.match(re); if (h) count += h.length;
+      text = text.replace(re, (match, k) => m.to + (k || ''));
+    }
   }
   for (const p of presets) {
     if (!activePresets.has(p.id)) continue;
@@ -1340,8 +1298,8 @@ function buildNameVariants(fullName) {
 
 /** Step1入力時にプレビューを更新 */
 function onNameInput() {
-  const clientVal  = document.getElementById('clientName').value.trim();
-  const opponentVal = document.getElementById('opponentName').value.trim();
+  // （廃止）
+
 
   updatePreview('clientPreview',  clientVal,  '依頼者A');
   updatePreview('opponentPreview', opponentVal, '相手方B');
@@ -1402,16 +1360,19 @@ async function detectNamesWithAI() {
   statusEl.textContent = '🤖 AIが人名・組織名を解析中...';
 
   try {
-    const prompt = `以下のテキストに含まれる人名・組織名・会社名をすべて抽出してください。
+    const prompt = `以下の日本語テキストに含まれる人名・組織名・会社名をすべて抽出してください。
 
 【抽出ルール】
-・個人名（フルネーム）、会社名、団体名、事務所名を対象にする
-・地名・役職名・一般名詞は含めない
+・個人名はフルネームで抽出する（例：「山田 太郎」「山田太郎」どちらも「山田 太郎」の形で返す）
+・姓名の間にスペースがある場合は「姓 名」の形（スペースあり）で返す
+・会社名・団体名・法律事務所名も含める
+・地名・役職・一般名詞・代名詞は含めない
 ・重複は除く
-・必ずJSON配列のみ返す（説明文・前置き一切不要）
+・末尾の敬称（様・殿・氏・先生）は除いて返す
+・必ずJSON配列のみ返す（説明文・記号・前置き一切不要）
 
-【出力形式】
-["山田太郎","佐藤次郎","株式会社サンプル"]
+【出力形式の例】
+["山田 太郎","佐藤 次郎","株式会社サンプル","こだまや法律事務所"]
 
 【テキスト】
 ${text.slice(0, 3000)}`;
