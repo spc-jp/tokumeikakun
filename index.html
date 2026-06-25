@@ -936,7 +936,7 @@
     </div>
 
     <div class="control-bar">
-      <button class="anon-btn" onclick="anonymize()">🔒 ワンボタン匿名化</button>
+      <button class="anon-btn" onclick="anonymize()">🤖🔒 AI検出＋ワンボタン匿名化</button>
       <button class="clear-main-btn" onclick="clearOutput()">結果をクリア</button>
       <span class="shortcut-hint">Ctrl + Enter でも実行</span>
       <div class="stats-badge" id="statsBadge">✓ <span id="statsNum">0</span> 件を置換しました</div>
@@ -1218,7 +1218,7 @@ function clearSettings() {
 }
 
 /* ══ 匿名化処理 ══ */
-function anonymize() {
+async function anonymize() {
   // ── 無料回数チェック ──
   if (!checkTrialOrPaid()) return;
 
@@ -1226,8 +1226,27 @@ function anonymize() {
   if (!text.trim()) { showToast('テキストを入力してください'); return; }
   let count = 0;
 
-  // Step1削除につきclientName/opponentNameの処理は廃止
-  // mappings（Step1）で名前・表記ゆれをすべて処理
+  // ── AI名前自動検出（ワンクリックで完結） ──
+  const anonBtn = document.querySelector('.anon-btn');
+  const origLabel = anonBtn.textContent;
+  anonBtn.disabled = true;
+  anonBtn.textContent = '🤖 AI解析中...';
+  try {
+    const names = await fetchNamesFromAI(text);
+    const existing = mappings.map(m => m.from.trim()).filter(Boolean);
+    mappings = mappings.filter(m => m.from.trim() || m.to.trim());
+    names.forEach(name => {
+      if (!name || existing.includes(name)) return;
+      const label = `【氏名${String.fromCharCode(65 + mappings.filter(m=>m.from).length)}】`;
+      mappings.push({ from: name, to: label });
+    });
+    mappings.push({ from: '', to: '' });
+    renderMappings();
+  } catch(e) {
+    console.warn('AI名前検出スキップ:', e.message);
+  }
+  anonBtn.disabled = false;
+  anonBtn.textContent = origLabel;
 
   const valid = mappings.filter(m=>m.from.trim()&&m.to.trim()).sort((a,b)=>b.from.length-a.from.length);
   const KEISHO2 = '(様|殿|氏|さん|くん|先生|御中)?';
@@ -1345,22 +1364,9 @@ function escH(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/
 function escR(s) { return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
 
 /* ══ AI名前自動検出 ══ */
-async function detectNamesWithAI() {
-  const text = document.getElementById('inputText').value.trim();
-  if (!text) {
-    showToast('⚠️ まず入力エリアにテキストを入力してください');
-    return;
-  }
-  const btn = document.getElementById('aiDetectBtn');
-  const statusEl = document.getElementById('aiDetectStatus');
-
-  btn.disabled = true;
-  statusEl.style.display = 'block';
-  statusEl.className = 'ai-detect-status loading';
-  statusEl.textContent = '🤖 AIが人名・組織名を解析中...';
-
-  try {
-    const prompt = `以下の日本語テキストに含まれる人名・組織名・会社名をすべて抽出してください。
+/* ══ AI名前取得（共通関数） ══ */
+async function fetchNamesFromAI(text) {
+  const prompt = `以下の日本語テキストに含まれる人名・組織名・会社名をすべて抽出してください。
 
 【抽出ルール】
 ・個人名はフルネームで抽出する（例：「山田 太郎」「山田太郎」どちらも「山田 太郎」の形で返す）
@@ -1377,25 +1383,38 @@ async function detectNamesWithAI() {
 【テキスト】
 ${text.slice(0, 3000)}`;
 
-    const res = await fetch('https://tokumeikakun-api.yymmatsu.workers.dev', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 512,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
+  const res = await fetch('https://tokumeikakun-api.yymmatsu.workers.dev', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 512,
+      messages: [{ role: 'user', content: prompt }] })
+  });
+  if (!res.ok) throw new Error(`APIエラー (${res.status})`);
+  const data = await res.json();
+  const raw = data.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+  const match = raw.match(/\[[\s\S]*\]/);
+  if (!match) return [];
+  const names = JSON.parse(match[0]);
+  return Array.isArray(names) ? names : [];
+}
 
-    if (!res.ok) throw new Error(`APIエラー (${res.status})`);
-    const data = await res.json();
-    const raw = data.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+async function detectNamesWithAI() {
+  const text = document.getElementById('inputText').value.trim();
+  if (!text) {
+    showToast('⚠️ まず入力エリアにテキストを入力してください');
+    return;
+  }
+  const btn = document.getElementById('aiDetectBtn');
+  const statusEl = document.getElementById('aiDetectStatus');
 
-    // JSON配列を抽出
-    const match = raw.match(/\[[\s\S]*\]/);
-    if (!match) throw new Error('名前が見つかりませんでした');
-    const names = JSON.parse(match[0]);
-    if (!Array.isArray(names) || names.length === 0) throw new Error('人名・組織名が検出されませんでした');
+  btn.disabled = true;
+  statusEl.style.display = 'block';
+  statusEl.className = 'ai-detect-status loading';
+  statusEl.textContent = '🤖 AIが人名・組織名を解析中...';
+
+  try {
+    const names = await fetchNamesFromAI(text);
+    if (!names.length) throw new Error('人名・組織名が検出されませんでした');
 
     // すでに設定済みの名前を除外して追加
     const existing = mappings.map(m => m.from.trim()).filter(Boolean);
