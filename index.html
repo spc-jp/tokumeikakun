@@ -1101,15 +1101,71 @@ function hideReading() { document.getElementById('readingOverlay').classList.rem
 
 /* ══ データ定義 ══ */
 const presets = [
-  { id:'phone',   label:'電話番号',           sample:'例：090-1234-5678 / ０９０－１２３４－５６７８', pattern:/[0０][\d０-９]{1,4}[-－]?[\d０-９]{1,4}[-－]?[\d０-９]{3,4}/g, replace:'【電話番号】' },
-  { id:'email',   label:'メールアドレス',     sample:'例：user@example.com',    pattern:/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g,                  replace:'【メールアドレス】' },
-  { id:'address', label:'住所（都道府県〜）', sample:'例：東京都渋谷区〇〇1-2-3', pattern:/(北海道|[東西南北]?[都道府県][^\s、。\n「」（）()]{2,15})/g,            replace:'【住所】' },
-  { id:'date',    label:'具体的な日付',       sample:'例：令和5年3月15日',       pattern:/(令和|平成|昭和)\d{1,2}年\d{1,2}月\d{1,2}日/g,                        replace:'【日付】' },
-  { id:'amount',  label:'金額',               sample:'例：300万円 / 1,200,000円', pattern:/\d{1,3}(,\d{3})*万?円/g,                                            replace:'【金額】' },
-  { id:'mynum',   label:'マイナンバー（12桁）', sample:'例：1234-5678-9012',    pattern:/\d{4}[-－]?\d{4}[-－]?\d{4}/g,                                        replace:'【マイナンバー】' }
+  // ① 電話番号（半角・全角・FAX対応）
+  { id:'phone',
+    label:'電話番号・FAX',
+    sample:'例：090-1234-5678 / FAX：03-1234-5678',
+    pattern:/(FAX[番号]*[：:・\s]*)?[0０][\d０-９]{1,4}[-－]?[\d０-９]{1,4}[-－]?[\d０-９]{3,4}/g,
+    replace:'【電話番号】' },
+
+  // ② メールアドレス
+  { id:'email',
+    label:'メールアドレス',
+    sample:'例：user@example.com',
+    pattern:/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g,
+    replace:'【メールアドレス】' },
+
+  // ③ 住所（郵便番号＋都道府県対応）
+  { id:'address',
+    label:'住所・郵便番号',
+    sample:'例：〒123-4567 東京都渋谷区〇〇1-2-3',
+    pattern:/(〒\d{3}[-－]?\d{4}[\s　]?)|(北海道|[東西南北]?[都道府県][^\s、。\n「」（）()]{2,20})/g,
+    replace:'【住所】' },
+
+  // ④ 日付（和暦・西暦・スラッシュ・略記すべて対応）
+  { id:'date',
+    label:'日付',
+    sample:'例：令和5年3月15日 / 2024年3月15日 / R5.3.15',
+    pattern:/((令和|平成|昭和)[0-9０-９元]{1,2}年[0-9０-９]{1,2}月[0-9０-９]{1,2}日)|([0-9]{4}[年\/\-][0-9]{1,2}[月\/\-][0-9]{1,2}日?)|([RHSrhs][0-9]{1,2}[.．][0-9]{1,2}[.．][0-9]{1,2})/g,
+    replace:'【日付】' },
+
+  // ⑤ 金額（億・万・カンマ区切り・「金○○円也」形式対応）
+  { id:'amount',
+    label:'金額',
+    sample:'例：300万円 / 1億5000万円 / 金3,000,000円也',
+    pattern:/(金\s*)?([0-9０-９,，]{1,15}億)?([0-9０-９,，]{1,15}万)?([0-9０-９,，]{1,10})円(也|なり)?/g,
+    replace:'【金額】' },
+
+  // ⑥ 銀行口座情報
+  { id:'bankaccount',
+    label:'銀行口座',
+    sample:'例：○○銀行○○支店 普通 1234567',
+    pattern:/[^\s]{2,10}(銀行|信用金庫|信組|農協)[^\s]{2,8}(支店|出張所)?[\s　]*(普通|当座|貯蓄)?[\s　]*[0-9]{4,8}/g,
+    replace:'【口座情報】' },
+
+  // ⑦ 郵便番号単独
+  { id:'zip',
+    label:'郵便番号',
+    sample:'例：〒123-4567',
+    pattern:/〒[0-9０-９]{3}[-－]?[0-9０-９]{4}/g,
+    replace:'【郵便番号】' },
+
+  // ⑧ マイナンバー（12桁）
+  { id:'mynum',
+    label:'マイナンバー（12桁）',
+    sample:'例：1234-5678-9012',
+    pattern:/[0-9０-９]{4}[-－]?[0-9０-９]{4}[-－]?[0-9０-９]{4}/g,
+    replace:'【マイナンバー】' },
+
+  // ⑨ 法人番号（13桁）
+  { id:'corpnum',
+    label:'法人番号（13桁）',
+    sample:'例：1234567890123',
+    pattern:/[0-9０-９]{13}/g,
+    replace:'【法人番号】' },
 ];
 
-let activePresets = new Set(['phone','email','address','date','amount','mynum']);
+let activePresets = new Set(['phone','email','address','date','amount','bankaccount','zip','mynum','corpnum']);
 let mappings = [{ from:'', to:'' }];
 
 /* ══ パネル切替 ══ */
@@ -1173,7 +1229,7 @@ function loadLawyerDefaults() {
   // Step1の名前はanonymize()で直接処理するのでmappingsには追加しない
   mappings = [{from:'', to:''}];
   renderMappings();
-  activePresets = new Set(['phone','email','address','date','amount','mynum']);
+  activePresets = new Set(['phone','email','address','date','amount','bankaccount','zip','mynum','corpnum']);
   renderPresets();
   showToast('弁護士向け設定を一括適用しました ✓');
 }
@@ -1181,7 +1237,7 @@ function loadLawyerDefaults() {
 function loadDemoData() {
   // （案件情報セクション削除につき不要）
   mappings = [{from:'山田太郎', to:'依頼者A'}, {from:'佐藤次郎', to:'相手方B'}, {from:'株式会社サンプル', to:'相手方会社'}, {from:'', to:''}];
-  renderMappings(); activePresets = new Set(['phone','email','address','date','amount','mynum']); renderPresets();
+  renderMappings(); activePresets = new Set(['phone','email','address','date','amount','bankaccount','zip','mynum','corpnum']); renderPresets();
   document.getElementById('inputText').value = `【法律相談記録】
 日時：令和6年4月1日
 相談者：山田太郎
@@ -1213,7 +1269,7 @@ Email：yamada.taro@example.com
 
 function clearSettings() {
   // （案件情報セクション削除につき不要）
-  mappings = [{from:'', to:''}]; renderMappings(); activePresets = new Set(['phone','email','address','date','amount','mynum']); renderPresets();
+  mappings = [{from:'', to:''}]; renderMappings(); activePresets = new Set(['phone','email','address','date','amount','bankaccount','zip','mynum','corpnum']); renderPresets();
   showToast('設定をクリアしました');
 }
 
@@ -1241,6 +1297,12 @@ async function anonymize() {
       mappings.push({ from: name, to: label });
     });
     mappings.push({ from: '', to: '' });
+
+    // 「以下、「X」という」略称を自動検出して追加
+    const abbrevs = extractAbbreviations(text, mappings);
+    abbrevs.forEach(a => mappings.push(a));
+    if (abbrevs.length) mappings.push({ from: '', to: '' });
+
     renderMappings();
   } catch(e) {
     console.warn('AI名前検出スキップ:', e.message);
@@ -1364,6 +1426,40 @@ function escH(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/
 function escR(s) { return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
 
 /* ══ AI名前自動検出 ══ */
+/* ══ 「以下、「X」という」略称を自動検出してマッピングに追加 ══ */
+function extractAbbreviations(text, currentMappings) {
+  // 「○○（以下、「▲」という。）」「○○（以下「X」という）」などに対応
+  const pattern = /(.{1,30})（以下[、,　]?[「"](.+?)[」"]とい[うぅ][。.]?）/g;
+  let match;
+  const additions = [];
+  while ((match = pattern.exec(text)) !== null) {
+    const before = match[1].trim();   // フルネーム側
+    const abbrev  = match[2].trim();  // 略称・記号
+
+    // currentMappingsの中でbeforeに含まれるものを探す
+    const found = currentMappings.find(m =>
+      m.from && m.to && (before.includes(m.from) || m.from.includes(before))
+    );
+    if (found && abbrev && abbrev !== found.to && abbrev !== found.from) {
+      // 同じラベルで略称もマッピングに追加
+      if (!currentMappings.find(m => m.from === abbrev)) {
+        additions.push({ from: abbrev, to: found.to });
+      }
+    }
+  }
+  // 「（以下「甲」という）」パターンで甲乙丙丁も検出（マッピングなしでも追加）
+  const kotoPattern = /（以下[、,　]?[「"]([甲乙丙丁戊])[」"]とい[うぅ][。.]?）/g;
+  let km;
+  while ((km = kotoPattern.exec(text)) !== null) {
+    const symbol = km[1];
+    if (!currentMappings.find(m => m.from === symbol)) {
+      additions.push({ from: symbol, to: `【当事者（${symbol}）】` });
+    }
+  }
+
+  return additions;
+}
+
 /* ══ AI名前取得（共通関数） ══ */
 async function fetchNamesFromAI(text) {
   const prompt = `以下の日本語テキストに含まれる人名・組織名・会社名をすべて抽出してください。
@@ -1371,7 +1467,7 @@ async function fetchNamesFromAI(text) {
 【抽出ルール】
 ・個人名はフルネームで抽出する（例：「山田 太郎」「山田太郎」どちらも「山田 太郎」の形で返す）
 ・姓名の間にスペースがある場合は「姓 名」の形（スペースあり）で返す
-・会社名・団体名・法律事務所名も含める
+・会社名・団体名・法律事務所名も含める（カタカナ表記の会社名・法人名も必ず含める）
 ・地名・役職・一般名詞・代名詞は含めない
 ・重複は除く
 ・末尾の敬称（様・殿・氏・先生）は除いて返す
@@ -1429,6 +1525,12 @@ async function detectNamesWithAI() {
       addCount++;
     });
     mappings.push({ from: '', to: '' }); // 末尾に空行
+
+    // 「以下、「X」という」略称を自動検出して追加
+    const abbrevs = extractAbbreviations(inputText, mappings);
+    abbrevs.forEach(a => mappings.push(a));
+    if (abbrevs.length) { mappings.push({ from: '', to: '' }); }
+
     renderMappings();
 
     // 設定パネルを開く
