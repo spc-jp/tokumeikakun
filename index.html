@@ -1278,8 +1278,10 @@ async function anonymize() {
   // ── 無料回数チェック ──
   if (!checkTrialOrPaid()) return;
 
-  let text = document.getElementById('inputText').value;
-  if (!text.trim()) { showToast('テキストを入力してください'); return; }
+  let rawText = document.getElementById('inputText').value;
+  if (!rawText.trim()) { showToast('テキストを入力してください'); return; }
+  // スペース区切り漢字を結合してから処理（「本　間　由　也」→「本間由也」）
+  let text = collapseSpacedKanji(rawText);
   let count = 0;
 
   // ── AI名前自動検出（ワンクリックで完結） ──
@@ -1298,10 +1300,21 @@ async function anonymize() {
     });
     mappings.push({ from: '', to: '' });
 
+    // 役職キーワード直後の名前を自動抽出（原告・被告・弁護士など）
+    const roleNames = extractNamesByRole(text);
+    const existingFroms = mappings.map(m => m.from.trim()).filter(Boolean);
+    roleNames.forEach(name => {
+      if (!existingFroms.includes(name)) {
+        const label = `【氏名${String.fromCharCode(65 + mappings.filter(m=>m.from).length)}】`;
+        mappings.push({ from: name, to: label });
+        existingFroms.push(name);
+      }
+    });
+
     // 「以下、「X」という」略称を自動検出して追加
     const abbrevs = extractAbbreviations(text, mappings);
     abbrevs.forEach(a => mappings.push(a));
-    if (abbrevs.length) mappings.push({ from: '', to: '' });
+    if (abbrevs.length || roleNames.length) mappings.push({ from: '', to: '' });
 
     renderMappings();
   } catch(e) {
@@ -1381,6 +1394,31 @@ function buildNameVariants(fullName) {
     sei,   // 山田
     mei,   // 太郎
   ];
+}
+
+/* ══ スペース区切り漢字を結合（「本　間　由　也」→「本間由也」） ══ */
+function collapseSpacedKanji(text) {
+  // 漢字1文字 + スペース + 漢字1文字 が2回以上続くパターンを結合
+  return text.replace(/([一-鿿぀-ゟ゠-ヿ])([\s　]+([一-鿿぀-ゟ゠-ヿ])){1,9}/g,
+    match => match.replace(/[\s　]+/g, '')
+  );
+}
+
+/* ══ 役職キーワードの直後の名前を自動抽出 ══
+   「原告　山田太郎」「被告訴訟代理人弁護士　本間由也」などに対応
+*/
+function extractNamesByRole(text) {
+  // スペース結合済みテキストで処理
+  const normalized = collapseSpacedKanji(text);
+  const roleKeywords = '(原告|被告|利害関係人|債務者|債権者|申立人|相手方|原告訴訟代理人弁護士|被告訴訟代理人弁護士|原告代理人弁護士|被告代理人弁護士|代理人弁護士|弁護士|参加人|補助参加人)';
+  const pattern = new RegExp(roleKeywords + '[\s\u3000　]{0,6}([\u4e00-\u9fff][\u4e00-\u9fff\s\u3000]{0,6}[\u4e00-\u9fff])', 'g');
+  const names = [];
+  let match;
+  while ((match = pattern.exec(normalized)) !== null) {
+    const raw = match[2].replace(/[\s\u3000]+/g, '').trim();
+    if (raw.length >= 2 && raw.length <= 8) names.push(raw);
+  }
+  return [...new Set(names)];
 }
 
 /* ══ 各文字間にスペースが入っていても一致させる正規表現を生成 ══
@@ -1480,6 +1518,8 @@ function extractAbbreviations(text, currentMappings) {
 
 /* ══ AI名前取得（共通関数） ══ */
 async function fetchNamesFromAI(text) {
+  // スペース区切り漢字を結合してからAIに送る（「本　間　由　也」→「本間由也」）
+  const normalizedText = collapseSpacedKanji(text);
   const prompt = `以下の日本語テキストに含まれる人名・組織名・会社名をすべて抽出してください。
 
 【抽出ルール】
@@ -1495,7 +1535,7 @@ async function fetchNamesFromAI(text) {
 ["山田 太郎","佐藤 次郎","株式会社サンプル","こだまや法律事務所"]
 
 【テキスト】
-${text.slice(0, 3000)}`;
+${normalizedText.slice(0, 3000)}`;
 
   const res = await fetch('https://tokumeikakun-api.yymmatsu.workers.dev', {
     method: 'POST',
