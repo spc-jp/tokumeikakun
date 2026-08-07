@@ -1124,14 +1124,14 @@ const presets = [
 
   // ④ 日付（和暦・西暦・スラッシュ・略記すべて対応）
   { id:'date',
-    label:'日付',
+    label:'日付（任意・通常はOFF）',
     sample:'例：令和5年3月15日 / 2024年3月15日 / R5.3.15',
     pattern:/((令和|平成|昭和)[0-9０-９元]{1,2}年[0-9０-９]{1,2}月[0-9０-９]{1,2}日)|([0-9]{4}[年\/\-][0-9]{1,2}[月\/\-][0-9]{1,2}日?)|([RHSrhs][0-9]{1,2}[.．][0-9]{1,2}[.．][0-9]{1,2})/g,
     replace:'【日付】' },
 
   // ⑤ 金額（億・万・カンマ区切り・「金○○円也」形式対応）
   { id:'amount',
-    label:'金額',
+    label:'金額（任意・通常はOFF）',
     sample:'例：300万円 / 1億5000万円 / 金3,000,000円也',
     pattern:/(金\s*)?([0-9０-９,，]{1,15}億)?([0-9０-９,，]{1,15}万)?([0-9０-９,，]{1,10})円(也|なり)?/g,
     replace:'【金額】' },
@@ -1165,7 +1165,7 @@ const presets = [
     replace:'【法人番号】' },
 ];
 
-let activePresets = new Set(['phone','email','address','date','amount','bankaccount','zip','mynum','corpnum']);
+let activePresets = new Set(['phone','email','address','bankaccount','zip','mynum','corpnum']); // date・amountは意図的にデフォルトOFF
 let mappings = [{ from:'', to:'' }];
 
 /* ══ パネル切替 ══ */
@@ -1229,7 +1229,7 @@ function loadLawyerDefaults() {
   // Step1の名前はanonymize()で直接処理するのでmappingsには追加しない
   mappings = [{from:'', to:''}];
   renderMappings();
-  activePresets = new Set(['phone','email','address','date','amount','bankaccount','zip','mynum','corpnum']);
+  activePresets = new Set(['phone','email','address','bankaccount','zip','mynum','corpnum']);
   renderPresets();
   showToast('弁護士向け設定を一括適用しました ✓');
 }
@@ -1237,7 +1237,7 @@ function loadLawyerDefaults() {
 function loadDemoData() {
   // （案件情報セクション削除につき不要）
   mappings = [{from:'山田太郎', to:'依頼者A'}, {from:'佐藤次郎', to:'相手方B'}, {from:'株式会社サンプル', to:'相手方会社'}, {from:'', to:''}];
-  renderMappings(); activePresets = new Set(['phone','email','address','date','amount','bankaccount','zip','mynum','corpnum']); renderPresets();
+  renderMappings(); activePresets = new Set(['phone','email','address','bankaccount','zip','mynum','corpnum']); renderPresets();
   document.getElementById('inputText').value = `【法律相談記録】
 日時：令和6年4月1日
 相談者：山田太郎
@@ -1269,7 +1269,7 @@ Email：yamada.taro@example.com
 
 function clearSettings() {
   // （案件情報セクション削除につき不要）
-  mappings = [{from:'', to:''}]; renderMappings(); activePresets = new Set(['phone','email','address','date','amount','bankaccount','zip','mynum','corpnum']); renderPresets();
+  mappings = [{from:'', to:''}]; renderMappings(); activePresets = new Set(['phone','email','address','bankaccount','zip','mynum','corpnum']); renderPresets();
   showToast('設定をクリアしました');
 }
 
@@ -1313,12 +1313,18 @@ async function anonymize() {
   const valid = mappings.filter(m=>m.from.trim()&&m.to.trim()).sort((a,b)=>b.from.length-a.from.length);
   const KEISHO2 = '(様|殿|氏|さん|くん|先生|御中)?';
   for (const m of valid) {
-    // buildNameVariantsで スペースあり・なし・苗字・名前 の全バリアントを生成
+    // ① 通常バリアント（スペースあり・なし・苗字・名前）
     const variants = buildNameVariants(m.from);
     for (const v of variants) {
       const re = new RegExp(escR(v) + KEISHO2, 'g');
       const h = text.match(re); if (h) count += h.length;
       text = text.replace(re, (match, k) => m.to + (k || ''));
+    }
+    // ② スペース混じりパターン（「山　　田　太　郎」など訴状整形に対応）
+    const spacedRe = buildSpacedPattern(m.from.replace(/[\s\u3000]+/g, ''));
+    if (spacedRe) {
+      const h2 = text.match(spacedRe); if (h2) count += h2.length;
+      text = text.replace(spacedRe, m.to);
     }
   }
   for (const p of presets) {
@@ -1364,9 +1370,9 @@ function buildNameVariants(fullName) {
   const parts = name.split(/[\s\u3000]+/).filter(Boolean);
   if (parts.length < 2) return [name]; // スペースなし → そのまま
 
-  const sei  = parts[0];           // 苗字
-  const mei  = parts.slice(1).join(''); // 名前（複数パーツも結合）
-  const full  = sei + mei;         // スペースなしフルネーム
+  const sei  = parts[0];
+  const mei  = parts.slice(1).join('');
+  const full = sei + mei;
 
   // 長い順に並べて誤マッチを防ぐ
   return [
@@ -1375,6 +1381,18 @@ function buildNameVariants(fullName) {
     sei,   // 山田
     mei,   // 太郎
   ];
+}
+
+/* ══ 各文字間にスペースが入っていても一致させる正規表現を生成 ══
+   例：「山　　田　太　郎」→ 山\s*田\s*太\s*郎
+   訴状の整形スペース（全角・半角混在）に対応
+*/
+function buildSpacedPattern(name) {
+  // スペースを除去して各文字に分解
+  const chars = name.replace(/[\s\u3000]+/g, '').split('');
+  if (chars.length < 2) return null;
+  // 各文字間に \s* を挿入
+  return new RegExp(chars.map(c => escR(c)).join('[\\s\\u3000]*'), 'g');
 }
 
 /** Step1入力時にプレビューを更新 */
