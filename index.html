@@ -1290,13 +1290,27 @@ async function anonymize() {
   anonBtn.disabled = true;
   anonBtn.textContent = '🤖 AI解析中...';
   try {
-    const names = await fetchNamesFromAI(text);
+    const detected = await fetchNamesFromAI(text);
     const existing = mappings.map(m => m.from.trim()).filter(Boolean);
     mappings = mappings.filter(m => m.from.trim() || m.to.trim());
-    names.forEach(name => {
+
+    // 人名 → 【氏名A】
+    (detected.persons || []).forEach(name => {
       if (!name || existing.includes(name)) return;
-      const label = `【氏名${String.fromCharCode(65 + mappings.filter(m=>m.from).length)}】`;
-      mappings.push({ from: name, to: label });
+      mappings.push({ from: name, to: getNextLabel('氏名') });
+      existing.push(name);
+    });
+    // 金融機関 → 【金融機関A】
+    (detected.financial || []).forEach(name => {
+      if (!name || existing.includes(name)) return;
+      mappings.push({ from: name, to: getNextLabel('金融機関') });
+      existing.push(name);
+    });
+    // 法人・団体 → 【法人A】
+    (detected.corporations || []).forEach(name => {
+      if (!name || existing.includes(name)) return;
+      mappings.push({ from: name, to: getNextLabel('法人') });
+      existing.push(name);
     });
     mappings.push({ from: '', to: '' });
 
@@ -1305,8 +1319,7 @@ async function anonymize() {
     const existingFroms = mappings.map(m => m.from.trim()).filter(Boolean);
     roleNames.forEach(name => {
       if (!existingFroms.includes(name)) {
-        const label = `【氏名${String.fromCharCode(65 + mappings.filter(m=>m.from).length)}】`;
-        mappings.push({ from: name, to: label });
+        mappings.push({ from: name, to: getNextLabel('氏名') });
         existingFroms.push(name);
       }
     });
@@ -1478,6 +1491,12 @@ function updateCount() { document.getElementById('inputCount').textContent = doc
 function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2500); }
 function showCopyConfirm() { const el = document.getElementById("copyConfirm"); el.classList.add("show"); setTimeout(()=>el.classList.remove("show"), 5000); }
 function closeCopyConfirm() { document.getElementById("copyConfirm").classList.remove("show"); }
+/* ══ カテゴリ別ラベル生成（氏名A・金融機関A・法人A） ══ */
+function getNextLabel(prefix) {
+  const used = mappings.filter(m => m.to && m.to.startsWith(`【${prefix}`)).length;
+  return `【${prefix}${String.fromCharCode(65 + used)}】`;
+}
+
 function escH(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function escR(s) { return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
 
@@ -1520,19 +1539,21 @@ function extractAbbreviations(text, currentMappings) {
 async function fetchNamesFromAI(text) {
   // スペース区切り漢字を結合してからAIに送る（「本　間　由　也」→「本間由也」）
   const normalizedText = collapseSpacedKanji(text);
-  const prompt = `以下の日本語テキストに含まれる人名・組織名・会社名をすべて抽出してください。
+  const prompt = `以下の日本語テキストに含まれる固有名詞を3カテゴリに分類して抽出してください。
+
+【カテゴリ定義】
+・persons（個人名）：自然人の氏名。フルネームで抽出。姓名間にスペースがある場合は「姓 名」の形で返す。末尾の敬称（様・殿・先生）は除く
+・financial（金融機関）：銀行・信用金庫・信用組合・農協・証券会社など
+・corporations（法人・団体）：株式会社・法律事務所・医療法人・NPO・官公庁など金融機関以外の法人
 
 【抽出ルール】
-・個人名はフルネームで抽出する（例：「山田 太郎」「山田太郎」どちらも「山田 太郎」の形で返す）
-・姓名の間にスペースがある場合は「姓 名」の形（スペースあり）で返す
-・会社名・団体名・法律事務所名も含める（カタカナ表記の会社名・法人名も必ず含める）
 ・地名・役職・一般名詞・代名詞は含めない
+・カタカナ表記の固有名詞も必ず含める
 ・重複は除く
-・末尾の敬称（様・殿・氏・先生）は除いて返す
-・必ずJSON配列のみ返す（説明文・記号・前置き一切不要）
+・必ずJSON形式のみ返す（説明文・記号・前置き一切不要）
 
-【出力形式の例】
-["山田 太郎","佐藤 次郎","株式会社サンプル","こだまや法律事務所"]
+【出力形式】
+{"persons":["山田 太郎","佐藤 次郎"],"financial":["○○銀行","△△信用金庫"],"corporations":["株式会社サンプル","こだまや法律事務所"]}
 
 【テキスト】
 ${normalizedText.slice(0, 3000)}`;
@@ -1540,16 +1561,22 @@ ${normalizedText.slice(0, 3000)}`;
   const res = await fetch('https://tokumeikakun-api.yymmatsu.workers.dev', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 512,
+    body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 700,
       messages: [{ role: 'user', content: prompt }] })
   });
   if (!res.ok) throw new Error(`APIエラー (${res.status})`);
   const data = await res.json();
   const raw = data.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
-  const match = raw.match(/\[[\s\S]*\]/);
-  if (!match) return [];
-  const names = JSON.parse(match[0]);
-  return Array.isArray(names) ? names : [];
+  const match = raw.match(/\{[\s\S]*\}/);
+  if (!match) return { persons: [], financial: [], corporations: [] };
+  try {
+    const parsed = JSON.parse(match[0]);
+    return {
+      persons:      Array.isArray(parsed.persons)      ? parsed.persons      : [],
+      financial:    Array.isArray(parsed.financial)    ? parsed.financial    : [],
+      corporations: Array.isArray(parsed.corporations) ? parsed.corporations : [],
+    };
+  } catch(e) { return { persons: [], financial: [], corporations: [] }; }
 }
 
 async function detectNamesWithAI() {
@@ -1567,20 +1594,32 @@ async function detectNamesWithAI() {
   statusEl.textContent = '🤖 AIが人名・組織名を解析中...';
 
   try {
-    const names = await fetchNamesFromAI(text);
-    if (!names.length) throw new Error('人名・組織名が検出されませんでした');
+    const detected = await fetchNamesFromAI(text);
+    const allDetected = [
+      ...(detected.persons || []),
+      ...(detected.financial || []),
+      ...(detected.corporations || [])
+    ];
+    if (!allDetected.length) throw new Error('固有名詞が検出されませんでした');
 
-    // すでに設定済みの名前を除外して追加
     const existing = mappings.map(m => m.from.trim()).filter(Boolean);
     let addCount = 0;
-    // 最後の空行を除いてフィルタ
     mappings = mappings.filter(m => m.from.trim() || m.to.trim());
 
-    names.forEach((name, i) => {
+    (detected.persons || []).forEach(name => {
       if (!name || existing.includes(name)) return;
-      const label = `【氏名${String.fromCharCode(65 + mappings.filter(m=>m.from).length)}】`;
-      mappings.push({ from: name, to: label });
-      addCount++;
+      mappings.push({ from: name, to: getNextLabel('氏名') });
+      existing.push(name); addCount++;
+    });
+    (detected.financial || []).forEach(name => {
+      if (!name || existing.includes(name)) return;
+      mappings.push({ from: name, to: getNextLabel('金融機関') });
+      existing.push(name); addCount++;
+    });
+    (detected.corporations || []).forEach(name => {
+      if (!name || existing.includes(name)) return;
+      mappings.push({ from: name, to: getNextLabel('法人') });
+      existing.push(name); addCount++;
     });
     mappings.push({ from: '', to: '' }); // 末尾に空行
 
