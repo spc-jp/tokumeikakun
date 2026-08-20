@@ -1104,8 +1104,8 @@ const presets = [
   // ① 電話番号（半角・全角・FAX対応）
   { id:'phone',
     label:'電話番号・FAX',
-    sample:'例：090-1234-5678 / FAX：03-1234-5678',
-    pattern:/(FAX[番号]*[：:・\s]*)?[0０][\d０-９]{1,4}[-－]?[\d０-９]{1,4}[-－]?[\d０-９]{3,4}/g,
+    sample:'例：090-1234-5678 / 03（1234）5678 / FAX：03-1234-5678',
+    pattern:/(FAX[番号]*[：:・\s]*)?[0０][\d０-９]{1,4}([-－―][\d０-９]{1,4}[-－―][\d０-９]{3,4}|[（(][\d０-９]{1,4}[）)][\d０-９]{3,4})/g,
     replace:'【電話番号】' },
 
   // ② メールアドレス
@@ -1117,9 +1117,9 @@ const presets = [
 
   // ③ 住所（郵便番号＋都道府県対応）
   { id:'address',
-    label:'住所・郵便番号',
-    sample:'例：〒123-4567 東京都渋谷区〇〇1-2-3',
-    pattern:/(〒\d{3}[-－]?\d{4}[\s　]?)|(北海道|[東西南北]?[都道府県][^\s、。\n「」（）()]{2,20})/g,
+    label:'住所・郵便番号・建物名',
+    sample:'例：〒123-4567 東京都渋谷区〇〇1-2-3 / ○○団地 / ○○マンション',
+    pattern:/(〒[\d０-９]{3}[-－―]?[\d０-９]{4}[\s　]?)|(北海道|[東西南北]?[都道府県][^\s、。\n「」（）()]{2,20})|([^\s　、。\n「」（）()]{2,15}(団地|マンション|アパート|ハイツ|コーポ|レジデンス|ガーデン|ハウス|荘|ビル))/g,
     replace:'【住所】' },
 
   // ④ 日付（和暦・西暦・スラッシュ・略記すべて対応）
@@ -1147,7 +1147,7 @@ const presets = [
   { id:'zip',
     label:'郵便番号',
     sample:'例：〒123-4567',
-    pattern:/〒[0-9０-９]{3}[-－]?[0-9０-９]{4}/g,
+    pattern:/〒[0-9０-９]{3}[-－―]?[0-9０-９]{4}/g,
     replace:'【郵便番号】' },
 
   // ⑧ マイナンバー（12桁）
@@ -1338,19 +1338,28 @@ async function anonymize() {
 
   const valid = mappings.filter(m=>m.from.trim()&&m.to.trim()).sort((a,b)=>b.from.length-a.from.length);
   const KEISHO2 = '(様|殿|氏|さん|くん|先生|御中)?';
+
+  // ━ フェーズ1：全員のフルネームを先にまとめて置換（苗字共通でも正しく処理）
   for (const m of valid) {
-    // ① 通常バリアント（スペースあり・なし・苗字・名前）
-    const variants = buildNameVariants(m.from);
-    for (const v of variants) {
+    for (const v of buildFullNameVariants(m.from)) {
       const re = new RegExp(escR(v) + KEISHO2, 'g');
       const h = text.match(re); if (h) count += h.length;
       text = text.replace(re, (match, k) => m.to + (k || ''));
     }
-    // ② スペース混じりパターン（「山　　田　太　郎」など訴状整形に対応）
+    // スペース混じりフルネーム（訴状整形対応）
     const spacedRe = buildSpacedPattern(m.from.replace(/[\s\u3000]+/g, ''));
     if (spacedRe) {
       const h2 = text.match(spacedRe); if (h2) count += h2.length;
       text = text.replace(spacedRe, m.to);
+    }
+  }
+
+  // ━ フェーズ2：苗字のみ・名前のみを置換（フルネーム置換後の残りに対して）
+  for (const m of valid) {
+    for (const v of buildPartialNameVariants(m.from)) {
+      const re = new RegExp(escR(v) + KEISHO2, 'g');
+      const h = text.match(re); if (h) count += h.length;
+      text = text.replace(re, (match, k) => m.to + (k || ''));
     }
   }
   for (const p of presets) {
@@ -1392,21 +1401,31 @@ function buildNameVariants(fullName) {
   // 末尾の敬称を除去してからバリアントを生成
   const name = fullName.trim().replace(/(様|殿|氏|さん|くん|先生|御中)$/, '');
   if (!name) return [];
-  // 半角・全角スペースで分割
   const parts = name.split(/[\s\u3000]+/).filter(Boolean);
-  if (parts.length < 2) return [name]; // スペースなし → そのまま
-
+  if (parts.length < 2) return [name];
   const sei  = parts[0];
   const mei  = parts.slice(1).join('');
   const full = sei + mei;
+  return [name, full, sei, mei]; // 全バリアント
+}
 
-  // 長い順に並べて誤マッチを防ぐ
-  return [
-    name,  // 山田 太郎（スペースあり）
-    full,  // 山田太郎
-    sei,   // 山田
-    mei,   // 太郎
-  ];
+/* フルネームのみのバリアント（フェーズ1用：苗字・名前単独を含まない） */
+function buildFullNameVariants(fullName) {
+  const name = fullName.trim().replace(/(様|殿|氏|さん|くん|先生|御中)$/, '');
+  if (!name) return [];
+  const parts = name.split(/[\s\u3000]+/).filter(Boolean);
+  if (parts.length < 2) return [name];
+  const full = parts.join('');
+  return [name, full]; // スペースあり・なしのフルネームのみ
+}
+
+/* 苗字・名前のみのバリアント（フェーズ2用） */
+function buildPartialNameVariants(fullName) {
+  const name = fullName.trim().replace(/(様|殿|氏|さん|くん|先生|御中)$/, '');
+  if (!name) return [];
+  const parts = name.split(/[\s\u3000]+/).filter(Boolean);
+  if (parts.length < 2) return [];
+  return [parts[0], parts.slice(1).join('')]; // 苗字・名前のみ
 }
 
 /* ══ スペース区切り漢字を結合（「本　間　由　也」→「本間由也」） ══ */
