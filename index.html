@@ -1442,14 +1442,33 @@ function collapseSpacedKanji(text) {
 function extractNamesByRole(text) {
   // スペース結合済みテキストで処理
   const normalized = collapseSpacedKanji(text);
-  const roleKeywords = '(原告|被告|利害関係人|債務者|債権者|申立人|相手方|原告訴訟代理人弁護士|被告訴訟代理人弁護士|原告代理人弁護士|被告代理人弁護士|代理人弁護士|弁護士|参加人|補助参加人)';
-  const pattern = new RegExp(roleKeywords + '[\s\u3000　]{0,6}([\u4e00-\u9fff][\u4e00-\u9fff\s\u3000]{0,6}[\u4e00-\u9fff])', 'g');
   const names = [];
   let match;
-  while ((match = pattern.exec(normalized)) !== null) {
+
+  // ── 日本語：役職キーワードの直後の漢字氏名 ──
+  const roleKeywords = '(原告|被告|利害関係人|債務者|債権者|申立人|相手方|原告訴訟代理人弁護士|被告訴訟代理人弁護士|原告代理人弁護士|被告代理人弁護士|代理人弁護士|弁護士|参加人|補助参加人)';
+  const jpPattern = new RegExp(roleKeywords + '[\s\u3000　]{0,6}([\u4e00-\u9fff][\u4e00-\u9fff\s\u3000]{0,6}[\u4e00-\u9fff])', 'g');
+  while ((match = jpPattern.exec(normalized)) !== null) {
     const raw = match[2].replace(/[\s\u3000]+/g, '').trim();
     if (raw.length >= 2 && raw.length <= 8) names.push(raw);
   }
+
+  // ── 英語：前置詞の直後に来る人名（大文字始まりの1〜3語）を抽出 ──
+  // 例：with John Smith / by Mary Johnson / between Alice and Bob
+  const enPrep = /\b(with|by|between|to|from|for|signed by|agreed by|prepared by|executed by|entered into by|represented by)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})/g;
+  while ((match = enPrep.exec(text)) !== null) {
+    const name = match[2].trim();
+    // 一般語・法律用語を除外
+    const skipWords = ['The','This','That','These','Those','Such','Any','All','Each','Both','Either','Neither','Party','Parties','Agreement','Contract','Court','Company','Corporation','Inc','Ltd','LLC'];
+    if (!skipWords.includes(name.split(' ')[0])) names.push(name);
+  }
+
+  // ── 英語：「Mr./Ms./Dr.+ 名前」パターン ──
+  const enTitle = /\b(Mr\.|Ms\.|Mrs\.|Dr\.|Prof\.)\s*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/g;
+  while ((match = enTitle.exec(text)) !== null) {
+    names.push(match[2].trim());
+  }
+
   return [...new Set(names)];
 }
 
@@ -1558,21 +1577,24 @@ function extractAbbreviations(text, currentMappings) {
 async function fetchNamesFromAI(text) {
   // スペース区切り漢字を結合してからAIに送る（「本　間　由　也」→「本間由也」）
   const normalizedText = collapseSpacedKanji(text);
-  const prompt = `以下の日本語テキストに含まれる固有名詞を3カテゴリに分類して抽出してください。
+  const prompt = `以下のテキスト（日本語・英語どちらでも対応）に含まれる固有名詞を3カテゴリに分類して抽出してください。
 
 【カテゴリ定義】
-・persons（個人名）：自然人の氏名。フルネームで抽出。姓名間にスペースがある場合は「姓 名」の形で返す。末尾の敬称（様・殿・先生）は除く
-・financial（金融機関）：銀行・信用金庫・信用組合・農協・証券会社など
-・corporations（法人・団体）：株式会社・法律事務所・医療法人・NPO・官公庁など金融機関以外の法人
+・persons（個人名）：自然人の氏名。
+  - 日本語：フルネームで抽出。姓名間にスペースがある場合は「姓 名」の形で返す。末尾の敬称（様・殿・先生・Mr./Ms./Dr.）は除く
+  - 英語：大文字始まりの人名（例：John Smith, Mary Johnson）。前置詞（with / by / between / to / from / for）の直後に来る人名も必ず含める
+・financial（金融機関）：銀行・信用金庫・信用組合・農協・証券会社・Bank・Trust・Credit Unionなど
+・corporations（法人・団体）：株式会社・法律事務所・医療法人・NPO・官公庁・Inc./Ltd./LLC/Corp.などの法人。金融機関は除く
 
 【抽出ルール】
 ・地名・役職・一般名詞・代名詞は含めない
 ・カタカナ表記の固有名詞も必ず含める
+・英語の固有名詞も必ず含める（特に「with ○○」「by ○○」「between ○○ and ○○」などの前置詞に続く人名）
 ・重複は除く
 ・必ずJSON形式のみ返す（説明文・記号・前置き一切不要）
 
-【出力形式】
-{"persons":["山田 太郎","佐藤 次郎"],"financial":["○○銀行","△△信用金庫"],"corporations":["株式会社サンプル","こだまや法律事務所"]}
+【出力形式の例】
+{"persons":["山田 太郎","John Smith","Mary Johnson"],"financial":["○○銀行","ABC Bank"],"corporations":["株式会社サンプル","Smith & Associates LLC"]}
 
 【テキスト】
 ${normalizedText.slice(0, 3000)}`;
