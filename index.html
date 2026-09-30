@@ -1578,9 +1578,37 @@ function extractAbbreviations(text, currentMappings) {
 }
 
 /* ══ AI名前取得（共通関数） ══ */
+/* ══ 省略名リストを事前抽出（AI検出前に除外するため） ══
+   「○○（以下、「▲」という。）」の「▲」を抽出して返す
+*/
+function extractAbbrevSymbols(text) {
+  const symbols = new Set();
+  const pattern = /（以下[、,　]?[「"](.+?)[」"]とい[うぅ][。.]?）/g;
+  let m;
+  while ((m = pattern.exec(text)) !== null) {
+    symbols.add(m[1].trim());
+  }
+  // 甲乙丙丁も追加
+  const kotoPattern = /（以下[、,　]?[「"]([甲乙丙丁戊])[」"]とい[うぅ][。.]?）/g;
+  while ((m = kotoPattern.exec(text)) !== null) {
+    symbols.add(m[1].trim());
+  }
+  return symbols;
+}
+
+/* ══ 法人格名単体を除外するチェック ══ */
+function isLegalEntityNameOnly(name) {
+  const entityNames = ['株式会社','有限会社','合同会社','合資会社','合名会社',
+    '一般社団法人','公益社団法人','一般財団法人','公益財団法人',
+    '特定非営利活動法人','医療法人','学校法人','社会福祉法人','宗教法人'];
+  return entityNames.includes(name.trim());
+}
+
 async function fetchNamesFromAI(text) {
   // スペース区切り漢字を結合してからAIに送る（「本　間　由　也」→「本間由也」）
   const normalizedText = collapseSpacedKanji(text);
+  // 省略名（▲・甲など）を事前に把握してAI検出から除外する
+  const abbrevSymbols = extractAbbrevSymbols(text);
   const prompt = `以下のテキスト（日本語・英語どちらでも対応）に含まれる固有名詞を3カテゴリに分類して抽出してください。
 
 【カテゴリ定義】
@@ -1595,6 +1623,8 @@ async function fetchNamesFromAI(text) {
 ・カタカナ表記の固有名詞も必ず含める
 ・英語の固有名詞も必ず含める（特に「with ○○」「by ○○」「between ○○ and ○○」などの前置詞に続く人名）
 ・重複は除く
+・「株式会社」「有限会社」「合同会社」「一般社団法人」「特定非営利活動法人」などの法人格名だけで固有の会社名を伴わないものは抽出しない
+・「（以下、「●」という。）」「（以下「▲」という）」のような省略記号・略称は抽出しない（省略記号は別途自動で処理される）
 ・必ずJSON形式のみ返す（説明文・記号・前置き一切不要）
 
 【出力形式の例】
@@ -1616,10 +1646,13 @@ ${normalizedText.slice(0, 3000)}`;
   if (!match) return { persons: [], financial: [], corporations: [] };
   try {
     const parsed = JSON.parse(match[0]);
+    // 省略名・法人格単体をフィルタリング
+    const filterList = (arr) => (Array.isArray(arr) ? arr : [])
+      .filter(n => n && !abbrevSymbols.has(n.trim()) && !isLegalEntityNameOnly(n));
     return {
-      persons:      Array.isArray(parsed.persons)      ? parsed.persons      : [],
-      financial:    Array.isArray(parsed.financial)    ? parsed.financial    : [],
-      corporations: Array.isArray(parsed.corporations) ? parsed.corporations : [],
+      persons:      filterList(parsed.persons),
+      financial:    filterList(parsed.financial),
+      corporations: filterList(parsed.corporations),
     };
   } catch(e) { return { persons: [], financial: [], corporations: [] }; }
 }
