@@ -1446,10 +1446,14 @@ function extractNamesByRole(text) {
   let match;
 
   // ── 日本語：役職キーワードの直後の漢字氏名 ──
+  // 「弁護士費用」「弁護士報酬」など複合語を除外するリスト
+  const legalCompounds = ['費用','報酬','会','法','資格','事務所','費','保険','倫理','業務','登録','名簿','法人','代理','活動','相談'];
   const roleKeywords = '(原告|被告|利害関係人|債務者|債権者|申立人|相手方|原告訴訟代理人弁護士|被告訴訟代理人弁護士|原告代理人弁護士|被告代理人弁護士|代理人弁護士|弁護士|参加人|補助参加人)';
   const jpPattern = new RegExp(roleKeywords + '[\s\u3000　]{0,6}([\u4e00-\u9fff][\u4e00-\u9fff\s\u3000]{0,6}[\u4e00-\u9fff])', 'g');
   while ((match = jpPattern.exec(normalized)) !== null) {
     const raw = match[2].replace(/[\s\u3000]+/g, '').trim();
+    // 複合語チェック：「弁護士費用」「弁護士報酬」などは人名ではないためスキップ
+    if (legalCompounds.some(w => raw.startsWith(w))) continue;
     if (raw.length >= 2 && raw.length <= 8) names.push(raw);
   }
 
